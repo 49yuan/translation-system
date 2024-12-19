@@ -1,18 +1,26 @@
 <template>
     <div class="chat-container">
+        <!-- 添加搜索框 -->
+        <div class="search-box">
+            <a class="search-btn" @click="searchChatItems">
+                <img src="@/assets/search.png" alt="Search Icon">
+            </a>
+            <input class="search-txt" v-model="searchQuery" placeholder="请输入搜索关键词" @input="debouncedSearch"
+                @keyup.enter="searchChatItems" />
+        </div>
         <div class="menu">
             <el-button type="primary" @click="triggerFileInput">选择音频文件</el-button>
             <input type="file" @change="handleFileUpload" style="display: none;" ref="fileInput" />
             <audio ref="audioPlayer" :src="audioSrc" @loadedmetadata="setAudioDuration" controls></audio>
         </div>
         <div class="chat-list" ref="chatList">
-            <div v-for="(item, index) in chatItems" :key="index" class="chat-item-box">
+            <div v-for="(item, index) in filteredChatItems" :key="index" class="chat-item-box">
                 <div class="avatar" :style="{ backgroundColor: item.color }">
-                    <Icon />
+                    <img src="@/assets/user.png" alt="User Icon">
                 </div>
                 <div class="content" @dblclick="seekAudio(item.start_time)">
-                    <div class="speaker">{{ item.speaker }}</div>
-                    <div class="main-content">{{ item.text }}</div>
+                    <div class="speaker">{{ item.speaker }}<span>{{ item.formatTime }}</span></div>
+                    <div class="main-content" v-html="item.text"></div>
                 </div>
             </div>
         </div>
@@ -21,8 +29,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { ElButton } from 'element-plus';
-import Icon from '../assets/Icon.vue';
+import { ElButton, ElInput } from 'element-plus';
 
 const audioSrc = ref(null);
 const chatItems = ref([]);
@@ -91,6 +98,39 @@ const seekAudio = timestamp => {
     if (audioPlayer.value) {
         audioPlayer.value.currentTime = timestamp;
     }
+};
+
+// 搜索相关的状态和方法
+const searchQuery = ref('');
+const filteredChatItems = ref([]);
+// 防抖函数，用于避免频繁触发搜索
+const debouncedSearch = () => {
+    setTimeout(() => {
+        searchChatItems();
+    }, 300);
+};
+const searchChatItems = () => {
+    if (searchQuery.value) {
+        console.log(`开始搜索：${searchQuery.value}`);
+        const regex = new RegExp(searchQuery.value, 'gi');
+        // 创建一个新的数组来存储处理后的chatItems
+        filteredChatItems.value = chatItems.value.map(item => {
+            const isMatch = regex.test(item.text);
+            if (isMatch) {
+                return {
+                    ...item,
+                    text: highlightText(item.text, regex),
+                };
+            }
+            return item;
+        });
+    } else {
+        filteredChatItems.value = chatItems.value.map(item => ({ ...item }));
+    }
+};
+
+const highlightText = (text, regex) => {
+    return text.replace(regex, (matched) => `<span class="highlight">${matched}</span>`);
 };
 
 
@@ -195,8 +235,11 @@ const handleFileUpload = event => {
         if (mockData.code === 200) {
             chatItems.value = mockData.data.recognition_result.map((item, index) => ({
                 ...item,
-                color: speakerColors[item.speaker]
+                color: speakerColors[item.speaker],
+                formatTime: `${(Math.floor(item.start_time / 60)).toString().padStart(2, '0')}:${(item.start_time % 60).toFixed(2).toString().padStart(2, '0')
+                    }`
             }));
+            filteredChatItems.value = chatItems.value.map(item => ({ ...item }))
         }
         console.log(chatItems);
     }
@@ -257,8 +300,12 @@ const handleFileUpload = event => {
     color: white;
 }
 
-.avatar i {
-    font-size: 36px;
+.avatar img {
+    width: 30px;
+    height: 30px;
+}
+
+.user-icon {
     color: white;
 }
 
@@ -272,10 +319,74 @@ const handleFileUpload = event => {
 
 .speaker {
     font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+.speaker span {
+    color: #888888;
+    font-weight: 400;
 }
 
 .main-content {
     white-space: pre-wrap;
 
+}
+
+.search-box {
+    position: fixed;
+    top: 200px;
+    right: 50px;
+    background-color: white;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    height: 24px;
+    padding: 9px;
+    border-radius: 40px;
+    display: flex;
+}
+
+.search-txt {
+    border: none;
+    background: none;
+    outline: none;
+    padding: 0;
+    color: #222;
+    font-size: 16px;
+    line-height: 20px;
+    width: 0;
+    transition: 0.4s;
+}
+
+.search-btn {
+    color: #888888;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.4s;
+}
+
+.search-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.search-box:hover .search-txt {
+    width: 200px;
+    padding: 0 12px;
+}
+
+.search-txt:focus {
+    width: 200px;
+    padding: 0 12px;
+}
+</style>
+<style>
+.highlight {
+    background-color: yellow;
 }
 </style>

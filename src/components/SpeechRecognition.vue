@@ -1,28 +1,45 @@
 <template>
     <div class="container">
+        <div class="tab">
+            <button v-for="tab in tabs" :key="tab" :class="{ 'tab-button': true, active: currentTab === tab }"
+                @click="currentTab = tab">
+                {{ tab }}
+            </button>
+        </div>
         <el-card class="audio-upload-card">
             <div class="audio-upload-container">
-                <el-input type="textarea" :rows="10" v-model="recognitionResult" placeholder="识别结果将显示在这里">
-                </el-input>
-                <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
-                    :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
-                    :on-change="handleChange" class="button">
-                    <template #trigger>
-                        <el-button type="primary">选择音频文件</el-button>
-                    </template>
-                    <el-button style="margin-left: 10px;" type="success" @click="hkTozh">中文翻译</el-button>
-                    <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
-                    <div style="margin-top: 15px;">
-                        <el-tag>{{ audioName }}</el-tag>
+                <div v-if="currentTab === '音频识别'" class="content" id="audio">
+                    <el-input type="textarea" :rows="10" v-model="recognitionResult" placeholder="识别结果将显示在这里">
+                    </el-input>
+                    <div class="button1">
+                        <el-button type="primary" @click="startRecording">开始录音</el-button>
+                        <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
                     </div>
-                </el-upload>
+                    <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
+                        :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
+                        :on-change="handleChange" class="button">
+                        <template #trigger>
+                            <el-button type="primary">选择音频文件</el-button>
+                        </template>
+                        <el-button style="margin-left: 10px;" type="success" @click="hkTozh">中文翻译</el-button>
+                        <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
+                        <div style="margin-top: 15px;">
+                            <el-tag>{{ audioName }}</el-tag>
+                        </div>
+                    </el-upload>
+
+                    <audio ref="audioPlayer" controls></audio>
+                </div>
+                <!-- 视频识别内容 -->
+                <div v-if="currentTab === '视频识别'" class="content" id="video">
+                    <!-- 视频识别界面 -->
+                </div>
             </div>
-            <audio ref="audioPlayer" controls></audio>
         </el-card>
     </div>
 </template>
 <script>
-import { audio_recognition_hkTozh, audio_recognition_hkToen } from '@/api/speech_recognition'
+import { audio_recognition_hkTozh } from '@/api/speech_recognition'
 
 export default {
     name: 'SpeechRecognition',
@@ -32,9 +49,46 @@ export default {
             audioFile: null,
             audioName: '',
             recognitionResult: '', // 用于存储识别结果
+            isRecording: false,
+            audioSrc: '',
+            mediaRecorder: null,
+            chunks: [],
+            currentTab: '音频识别', // 默认显示音频识别界面
+            tabs: ['音频识别', '视频识别'],
         };
     },
     methods: {
+        startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) {
+                            this.chunks.push(e.data);
+                        }
+                    };
+                    this.mediaRecorder.onstop = () => {
+                        // 创建 Blob 对象
+                        const blob = new Blob(this.chunks, { type: 'audio/wav' });
+                        // 将 Blob 转换为 File 对象
+                        this.audioFile = new File([blob], '录音.wav', { type: 'audio/wav' });
+                        this.audioName = '录音.wav';
+                        this.audioSrc = URL.createObjectURL(this.audioFile);
+                        this.chunks = [];
+                        this.isRecording = false;
+                    };
+                })
+                .catch(err => {
+                    console.error("Error accessing media devices.", err);
+                });
+        },
+        stopRecording() {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                this.mediaRecorder.stop();
+            }
+        },
         beforeUpload(file) {
             const isAudio = file.type.startsWith('audio/');
             if (!isAudio) {
@@ -57,33 +111,37 @@ export default {
         },
         handleSuccess(response, file, fileList) {
             this.$message.success('音频上传成功');
-            this.recognitionResult = response.data['translated_text']
+            this.recognitionResult = response.data['result']
         },
         handleError(error, file, fileList) {
             this.$message.error('音频上传失败');
         },
         hkTozh() {
-            if (!this.audioFile) {
+            if (!this.audioFile || !(this.audioFile instanceof File)) {
                 this.$message.error('请先选择音频文件');
                 return;
             }
+            console.log(this.audioFile)
             audio_recognition_hkTozh(this.audioFile)
                 .then(res => {
                     console.log(res.data)
-                    this.recognitionResult = res.data['translated_text']
-                })
+                    this.recognitionResult = res.data.data['result']
+                }).catch(error => {
+                    console.error('音频识别失败:', error);
+                    this.$message.error('音频识别失败');
+                });
         },
-        hkToen() {
-            if (!this.audioFile) {
-                this.$message.error('请先选择音频文件');
-                return;
-            }
-            audio_recognition_hkToen(this.audioFile)
-                .then(res => {
-                    console.log(res.data)
-                    this.recognitionResult = res.data['translated_text']
-                })
-        },
+        // hkToen() {
+        //     if (!this.audioFile) {
+        //         this.$message.error('请先选择音频文件');
+        //         return;
+        //     }
+        //     audio_recognition_hkToen(this.audioFile)
+        //         .then(res => {
+        //             console.log(res.data)
+        //             this.recognitionResult = res.data['result']
+        //         })
+        // },
     },
     watch: {
         fileList(newVal) {
@@ -94,29 +152,65 @@ export default {
 </script>
   
 <style scoped>
+.tab {
+    position: absolute;
+    height: 35px;
+    top: -35px;
+    left: 0;
+}
+
+.tab-button {
+    height: 100%;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: white;
+    border: none;
+    outline: none;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
+}
+
+.tab-button.active {
+    background-color: #ffd04b;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    display: none;
+    /* 默认隐藏所有内容 */
+}
+
+#audio {
+    display: block;
+    /* 默认显示音频识别界面 */
+}
+
 .container {
     position: relative;
-    height: 100vh;
+    width: 800px;
+    height: 550px;
+    margin: auto;
+    margin-top: 140px;
 }
 
 .audio-upload-card {
     width: 800px;
     height: 500px;
-    margin: auto;
-    /* 水平居中 */
-    position: absolute;
-    top: 30%;
-    /* 向下移动30%的高度 */
     left: 50%;
-    transform: translate(-50%, -30%);
-    /* 调整位置确保准确在某个位置 */
+    border-top-left-radius: 0;
 }
 
 .audio-upload-container {
-    padding: 20px;
+    padding: 15px;
+}
+
+.button1 {
+    margin-top: 20px;
 }
 
 .button {
-    margin-top: 30px;
+    margin-top: 10px;
 }
 </style>

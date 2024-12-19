@@ -69,7 +69,7 @@ export default {
                 try {
                     const response = await login(this.loginForm.username, this.loginForm.password);
                     if (response && response.data) {
-                        window.sessionStorage.setItem("token", response.data);
+                        window.sessionStorage.setItem("token", response.data.result);
                         window.sessionStorage.setItem("username", this.loginForm.username);
                         ElMessage.success("登录成功");
                         this.$router.push('/home');
