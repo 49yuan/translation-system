@@ -8,7 +8,6 @@ export function audio_recognition_hkTozh(audioFile) {
   formData.append('file', audioFile);
   return axios.post('translation_hk_to_zh', formData, {
     headers: {
-      'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2VtYWlsIjoiYWRtaW5AcXEuY29tIiwiZXhwaXJlX3RpbWUiOjE3MzY0OTI4NTh9.9D3VU1poxW4cp4yJKC7EVpumkpm30fJwMVvIpAwh3Bc',
     }
   });
 }
