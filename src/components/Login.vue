@@ -68,13 +68,22 @@ export default {
                 }
                 try {
                     const response = await login(this.loginForm.username, this.loginForm.password);
-                    if (response && response.data) {
-                        window.sessionStorage.setItem("token", response.data.result);
-                        window.sessionStorage.setItem("username", this.loginForm.username);
-                        ElMessage.success("登录成功");
-                        this.$router.push('/home');
-                    } else {
-                        ElMessage.error("登录失败");
+                    switch (response.code) {
+                        case 200:
+                            window.sessionStorage.setItem("token", response.data.result);
+                            window.sessionStorage.setItem("username", this.loginForm.username);
+                            ElMessage.success("登录成功");
+                            this.$router.push('/home');
+                            break;
+                        case 410:
+                            ElMessage.error("用户不存在");
+                            break;
+                        case 411:
+                            ElMessage.error("密码错误");
+                            break;
+                        default:
+                            ElMessage.error("登录失败，未知错误");
+                            break;
                     }
                 } catch (error) {
                     ElMessage.error("登录请求异常");

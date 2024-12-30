@@ -3,9 +3,11 @@ import LoginPage from './components/Login.vue';
 import HomePage from './components/Home.vue';
 import SpeechRecognition from './components/SpeechRecognition';
 import DialoguePage from './components/DialoguePage';
+import ChangePassword from './components/ChangePassword';
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: LoginPage },
+    { path: '/changep', component: ChangePassword },
     {
         path: '/home', component: HomePage,
         redirect: '/speech_recognition',
