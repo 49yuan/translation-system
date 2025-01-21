@@ -5,8 +5,14 @@
             <img src="@/assets/logo.png" alt="Logo" style="height: 70px;" />
             厦门大学智影动力AIGC系统 &nbsp; | &nbsp; <span>语音生成</span>
         </el-menu-item>
-        <el-menu-item index="/speech_recognition" style="font-size: 17px;">闽南语翻译</el-menu-item>
+        <el-sub-menu index="/speech_recognition" style="font-size: 17px;">
+            <template #title>闽南语翻译</template>
+            <el-menu-item index="/speech_recognition">音频识别</el-menu-item>
+            <el-menu-item index="/speech_recognition/video">视频识别</el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/dialogue" style="font-size: 17px;">闽南语对话翻译</el-menu-item>
+        <el-menu-item index="/language_recognition" style="font-size: 17px;">闽南语语种识别</el-menu-item>
+        <el-menu-item index="/speech_synthesis" style="font-size: 17px;">闽南语合成</el-menu-item>
         <div class="flex-grow" />
         <el-menu-item style="font-size: 17px;">{{ getUsername() }}</el-menu-item>
         <el-menu-item style="font-size: 17px;"><el-button type="primary" link
@@ -59,6 +65,10 @@ export default {
 
 .flex-grow {
     flex-grow: 1;
+}
+
+.el-sub-menu__title {
+    font-size: 17px !important;
 }
 </style>
   

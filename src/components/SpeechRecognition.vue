@@ -1,60 +1,39 @@
 <template>
     <div class="container">
-        <div class="tab">
+        <!-- <div class="tab">
             <button v-for="tab in tabs" :key="tab" :class="{ 'tab-button': true, active: currentTab === tab }"
                 @click="currentTab = tab">
                 {{ tab }}
             </button>
-        </div>
+        </div> -->
         <el-card class="audio-upload-card">
             <div class="audio-upload-container">
-                <div v-if="currentTab === '音频识别'" class="content" id="audio">
-                    <div class="text_area" v-html="recognitionResult" placeholder="识别结果将显示在这里">
-                    </div>
-                    <div class="button1">
-                        <el-button type="primary" @click="startRecording">开始录音</el-button>
-                        <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
-                    </div>
-                    <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
-                        :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
-                        :on-change="handleChange" class="button">
-                        <template #trigger>
-                            <el-button type="primary">选择音频文件</el-button>
-                        </template>
-                        <el-button style="margin-left: 10px;" type="success" @click="hkTozh">中文翻译</el-button>
-                        <el-button style="margin-left: 10px;" type="success">导出</el-button>
-                        <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
-                        <!-- <div style="margin-top: 15px;">
+                <!-- <div v-if="currentTab === '音频识别'" class="content" id="audio"> -->
+                <div class="text_area" v-html="recognitionResult" placeholder="识别结果将显示在这里">
+                </div>
+                <div class="button1">
+                    <el-button type="primary" @click="startRecording">开始录音</el-button>
+                    <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
+                </div>
+                <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
+                    :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
+                    :on-change="handleChange" class="button">
+                    <template #trigger>
+                        <el-button type="primary">选择音频文件</el-button>
+                    </template>
+                    <el-button style="margin-left: 10px;" type="success" :loading="isTranslating" :disabled="isTranslating"
+                        @click="hkTozh">
+                        {{ isTranslating ? '翻译中...' : '中文翻译' }}
+                    </el-button>
+                    <el-button style="margin-left: 10px;" type="success">导出</el-button>
+                    <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
+                    <!-- <div style="margin-top: 15px;">
                             <el-tag>{{ audioName }}</el-tag>
                         </div> -->
-                    </el-upload>
+                </el-upload>
 
-                    <audio ref="audioPlayer" controls></audio>
-                </div>
-                <!-- 视频识别内容 -->
-                <div v-if="currentTab === '视频识别'" class="content" id="video">
-                    <video ref="videoPlayer" controls></video>
-                    <div class="operation-area">
-                        <el-upload :before-upload="beforeVideoUpload" :on-change="handleVideoChange" :auto-upload="false"
-                            class="button">
-                            <el-button type="primary">上传视频文件</el-button>
-                            <el-button style="margin-left: 10px;" type="success"
-                                @click="translateSubtitles">翻译字幕</el-button>
-                            <el-button style="margin-left: 10px;" type="success">导出</el-button>
-                        </el-upload>
-                        <!-- <div style="margin-top: 15px;">
-                            <el-tag>{{ videoName }}</el-tag>
-                        </div> -->
-                    </div>
-                    <div class="subtitle-area">
-                        <ul>
-                            <li v-for="(subtitle, index) in subtitles" :key="index"
-                                :style="{ 'display': subtitle.display }">
-                                {{ subtitle.text }}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                <audio ref="audioPlayer" controls></audio>
+                <!-- </div> -->
             </div>
         </el-card>
     </div>
@@ -74,14 +53,15 @@ export default {
             audioSrc: '',
             mediaRecorder: null,
             chunks: [],
-            currentTab: '音频识别', // 默认显示音频识别界面
-            tabs: ['音频识别', '视频识别'],
-            videoFile: null,
-            videoName: '',
-            videoSrc: '',
-            subtitles: [],
-            videoFileList: [],
-            highlightedTexts: [] // 用于存储高亮文本和时间戳
+            // currentTab: '音频识别', // 默认显示音频识别界面
+            // tabs: ['音频识别', '视频识别'],
+            // videoFile: null,
+            // videoName: '',
+            // videoSrc: '',
+            // subtitles: [],
+            // videoFileList: [],
+            highlightedTexts: [], // 用于存储高亮文本和时间戳
+            isTranslating: false, // 控制翻译按钮的状态
         };
     },
     methods: {
@@ -121,11 +101,12 @@ export default {
             if (!isAudio) {
                 this.$message.error('请上传音频文件!');
             }
-            const isLt10M = file.size / 1024 / 1024 < 10;
-            if (!isLt10M) {
-                this.$message.error('上传文件大小不能超过 10MB!');
-            }
-            return isAudio && isLt10M;
+            // const isLt10M = file.size / 1024 / 1024 < 10;
+            // if (!isLt10M) {
+            //     this.$message.error('上传文件大小不能超过 10MB!');
+            // }
+            // return isAudio && isLt10M;
+            return isAudio;
         },
         handleChange(file, fileList) {
             this.audioFile = file.raw; // 假设一次只上传一个文件
@@ -164,6 +145,9 @@ export default {
                 this.$message.error('请先选择音频文件');
                 return;
             }
+            // 开始翻译，设置按钮状态
+            this.isTranslating = true;
+
             const formData = new FormData();
             formData.append('file', this.audioFile);
 
@@ -188,6 +172,9 @@ export default {
             } catch (error) {
                 console.error('音频识别失败:', error);
                 this.$message.error('音频识别失败');
+            } finally {
+                // 翻译完成，恢复按钮状态
+                this.isTranslating = false;
             }
         },
         renderHighlightedText() {
@@ -225,77 +212,78 @@ export default {
         //             this.recognitionResult = res.data['result']
         //         })
         // },
-        handleVideoChange(file, fileList) {
-            this.videoFile = file.raw;
-            this.videoName = file.name;
-            this.videoFileList = [file];
-            if (this.videoFile) {
-                const videoPlayer = this.$refs.videoPlayer;
-                videoPlayer.src = URL.createObjectURL(this.videoFile);
-            }
-            //这部分是因为禁用了auto-upload,后端启用时或许可以解除
-            this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
-            console.log(this.subtitles);
-        },
-        beforeVideoUpload(file) {
-            const isVideo = file.type.startsWith('video/');
-            if (!isVideo) {
-                this.$message.error('请上传视频文件!');
-            }
-            const isLt100M = file.size / 1024 / 1024 < 100;
-            if (!isLt100M) {
-                this.$message.error('上传文件大小不能超过 100MB!');
-            }
-            return isVideo && isLt100M;
-        },
-        handleVideoSuccess(response, file, fileList) {
-            this.$message.success('视频上传成功');
-            this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
-            console.log(this.subtitles);
-        },
-        handleVideoError(error, file, fileList) {
-            this.$message.error('视频上传失败');
-        },
-        fetchSubtitles() {
-            this.subtitles = [
-                {
-                    text: "请点击翻译字幕按钮生成中文翻译",
-                    start_time: 0,
-                    end_time: 5,
-                    display: 'display'
-                },
-                {
-                    text: "出现这个代表后端翻译api还没正常获取",
-                    start_time: 5,
-                    end_time: 10,
-                    display: 'none'
-                },
-                // ... 其他字幕数据
-            ];
-            // 监听视频播放事件，显示对应字幕
-            const videoPlayer = this.$refs.videoPlayer;
-            videoPlayer.addEventListener('timeupdate', this.syncSubtitles);
-        },
-        syncSubtitles() {
-            const currentTime = this.$refs.videoPlayer.currentTime;
-            this.subtitles = this.subtitles.map((subtitle, index) => {
-                if (currentTime >= subtitle.start_time && currentTime <= subtitle.end_time) {
-                    return { ...subtitle, display: 'block' };
-                } else {
-                    return { ...subtitle, display: 'none' };
-                }
-            });
-        },
-        translateSubtitles() {
-            // 调用后端接口翻译字幕
-            // 假设后端接口返回翻译后的字幕信息
-            // 更新 this.subtitles
-        },
-        beforeDestroy() {
-            // 组件销毁前移除事件监听
-            const videoPlayer = this.$refs.videoPlayer;
-            videoPlayer.removeEventListener('timeupdate', this.syncSubtitles);
-        },
+        // 已转移
+        // handleVideoChange(file, fileList) {
+        //     this.videoFile = file.raw;
+        //     this.videoName = file.name;
+        //     this.videoFileList = [file];
+        //     if (this.videoFile) {
+        //         const videoPlayer = this.$refs.videoPlayer;
+        //         videoPlayer.src = URL.createObjectURL(this.videoFile);
+        //     }
+        //     //这部分是因为禁用了auto-upload,后端启用时或许可以解除
+        //     this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
+        //     console.log(this.subtitles);
+        // },
+        // beforeVideoUpload(file) {
+        //     const isVideo = file.type.startsWith('video/');
+        //     if (!isVideo) {
+        //         this.$message.error('请上传视频文件!');
+        //     }
+        //     const isLt100M = file.size / 1024 / 1024 < 100;
+        //     if (!isLt100M) {
+        //         this.$message.error('上传文件大小不能超过 100MB!');
+        //     }
+        //     return isVideo && isLt100M;
+        // },
+        // handleVideoSuccess(response, file, fileList) {
+        //     this.$message.success('视频上传成功');
+        //     this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
+        //     console.log(this.subtitles);
+        // },
+        // handleVideoError(error, file, fileList) {
+        //     this.$message.error('视频上传失败');
+        // },
+        // fetchSubtitles() {
+        //     this.subtitles = [
+        //         {
+        //             text: "请点击翻译字幕按钮生成中文翻译",
+        //             start_time: 0,
+        //             end_time: 5,
+        //             display: 'display'
+        //         },
+        //         {
+        //             text: "出现这个代表后端翻译api还没正常获取",
+        //             start_time: 5,
+        //             end_time: 10,
+        //             display: 'none'
+        //         },
+        //         // ... 其他字幕数据
+        //     ];
+        //     // 监听视频播放事件，显示对应字幕
+        //     const videoPlayer = this.$refs.videoPlayer;
+        //     videoPlayer.addEventListener('timeupdate', this.syncSubtitles);
+        // },
+        // syncSubtitles() {
+        //     const currentTime = this.$refs.videoPlayer.currentTime;
+        //     this.subtitles = this.subtitles.map((subtitle, index) => {
+        //         if (currentTime >= subtitle.start_time && currentTime <= subtitle.end_time) {
+        //             return { ...subtitle, display: 'block' };
+        //         } else {
+        //             return { ...subtitle, display: 'none' };
+        //         }
+        //     });
+        // },
+        // translateSubtitles() {
+        //     // 调用后端接口翻译字幕
+        //     // 假设后端接口返回翻译后的字幕信息
+        //     // 更新 this.subtitles
+        // },
+        // beforeDestroy() {
+        //     // 组件销毁前移除事件监听
+        //     const videoPlayer = this.$refs.videoPlayer;
+        //     videoPlayer.removeEventListener('timeupdate', this.syncSubtitles);
+        // },
     },
     watch: {
         fileList(newVal) {
@@ -303,13 +291,15 @@ export default {
         },
     },
     mounted() {
-        this.highlightText();
+        this.$nextTick(() => {
+            this.highlightText();
+        });
     }
 };
 </script>
   
 <style scoped>
-.tab {
+/* .tab {
     position: absolute;
     height: 35px;
     top: -35px;
@@ -330,7 +320,7 @@ export default {
 
 .tab-button.active {
     background-color: #ffd04b;
-}
+} */
 
 .content {
     width: 100%;
