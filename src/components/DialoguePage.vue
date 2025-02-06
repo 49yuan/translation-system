@@ -9,24 +9,31 @@
                 @keyup.enter="searchChatItems" />
         </div>
         <!-- 说话人识别 -->
-        <div class="people">
+        <el-card class="people">
             <h4>说话人识别</h4>
-            <div v-if="speakers.length > 0" class="speaker_items">
-                <div v-for="speaker in speakers" :key="speaker.name" class="speaker-button-group">
-                    <button :class="{ selected: selectedSpeakers[speaker.name] }" @click="selectSpeaker(speaker.name)">
-                        {{ speaker.name }}
-                    </button>
-                    <div class="flex1">
-                        <button class="add-info" @click="openAddVoiceDialog(speaker)">
-                            +
-                        </button>
+            <div style="height:300px;width: 220px;">
+                <el-scrollbar style="height: 100%" class="speaker-list-container">
+                    <div v-if="speakers.length > 0" class="speaker-list">
+                        <div v-for="speaker in speakers" :key="speaker.name" class="speaker-card">
+                            <div class="flex5">
+                                <el-button type="primary" plain :class="{ selected: selectedSpeakers[speaker.name] }"
+                                    @click="selectSpeaker(speaker.name)">
+                                    {{ speaker.name }}
+                                </el-button>
+                            </div>
+                            <div class="flex1">
+                                <el-button class="add-info" @click="openAddVoiceDialog(speaker)" cicrle>
+                                    +
+                                </el-button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="speaker-button-group">
-                    <button @click="openCreateSpeakerDialog">创建说话人</button>
-                </div>
+                </el-scrollbar>
             </div>
-        </div>
+            <div class="creatspeaker">
+                <el-button type="primary" @click="openCreateSpeakerDialog">创建说话人</el-button>
+            </div>
+        </el-card>
 
         <!-- 添加语音数据的对话框 -->
         <div v-if="addVoiceDialogVisible" class="confirm-dialog">
@@ -69,7 +76,9 @@
             </el-card>
         </div>
         <div class="menu">
-            <el-button type="primary" @click="triggerFileInput">选择音频文件</el-button>
+            <el-button type="primary" @click="triggerFileInput" :loading="isTranlation" :disabled="isTranlation">{{
+                isTranlation ?
+                '翻译中...' : '选择音频文件' }}</el-button>
             <input type="file" @change="handleFileUpload" style="display: none;" ref="fileInput" />
             <audio ref="audioPlayer" :src="audioSrc" @loadedmetadata="setAudioDuration" @timeupdate="onTimeUpdate"
                 controls></audio>
@@ -121,7 +130,7 @@ const selectedSpeaker = ref(null); // 当前选中的说话人
 const speakers = ref([]); // 存储说话人列表
 const selectedSpeakers = reactive({}); // 存储选中状态
 const searchQuery = ref(''); // 搜索框的内容
-
+const isTranlation = ref(false);
 // 定义文件输入框的引用
 const addVoiceInput = ref(null);
 const speakerInput = ref(null);
@@ -165,7 +174,7 @@ function handleFileUpload(event) {
         }
 
         audioSrc.value = URL.createObjectURL(file);
-
+        isTranlation.value = true;
         axios.post('/speaker_diarization', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
@@ -188,6 +197,8 @@ function handleFileUpload(event) {
             .catch(error => {
                 console.error('Failed to fetch data:', error);
                 alert('文件上传失败');
+            }).finally(() => {
+                isTranlation.value = false;
             });
     }
 }
@@ -605,24 +616,31 @@ onMounted(fetchSpeakers);
 
 .people {
     position: fixed;
-    left: 5%;
-    margin-top: 80px;
-    width: 11%;
+    left: 4%;
+    margin-top: 100px;
+    width: 14%;
     text-align: center;
 }
 
-.speaker_items {
+.speaker-list-container {
+    /* overflow-y: auto; */
+    max-height: 300px;
+    padding-right: 20px;
+}
+
+.speaker-list {
     display: flex;
     flex-direction: column;
 }
 
-.speaker-button-group {
+.speaker-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 2px 0;
 }
 
-.speaker-button-group button {
+/* .speaker-card button {
     background: transparent;
     border-radius: 5px;
     border: 2px solid #3d9dff;
@@ -631,13 +649,31 @@ onMounted(fetchSpeakers);
     margin: 5px 0;
     color: #3d9dff;
     flex: 5;
+} */
+
+.speaker-card .selected {
+    background: #3d9dff;
+    color: white;
 }
 
-.speaker-button-group .flex1 {
+.creatspeaker {
+    margin-top: 20px;
+}
+
+.speaker-card .flex1 {
     flex: 1;
 }
 
-.speaker-button-group .add-info {
+.speaker-card .flex5 {
+    flex: 5;
+}
+
+.speaker-card .flex5 button {
+    width: 100%;
+    margin: 3px 0;
+}
+
+.speaker-card .add-info {
     width: 30px;
     height: 30px;
     border-radius: 50%;

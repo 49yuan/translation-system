@@ -12,7 +12,7 @@
         </el-sub-menu>
         <el-menu-item index="/dialogue" style="font-size: 17px;">闽南语对话翻译</el-menu-item>
         <el-menu-item index="/language_recognition" style="font-size: 17px;">闽南语语种识别</el-menu-item>
-        <el-menu-item index="/speech_synthesis" style="font-size: 17px;">闽南语合成</el-menu-item>
+        <el-menu-item index="/speech_synthesis" style="font-size: 17px;" disabled>闽南语合成</el-menu-item>
         <div class="flex-grow" />
         <el-menu-item style="font-size: 17px;">{{ getUsername() }}</el-menu-item>
         <el-menu-item style="font-size: 17px;"><el-button type="primary" link

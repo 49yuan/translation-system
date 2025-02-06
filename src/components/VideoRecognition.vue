@@ -103,6 +103,7 @@ export default {
             this.$refs.videoPlayer.currentTime = start;
         },
         beforeVideoUpload(file) {
+            videoFileList = [];
             const isVideo = file.type.startsWith('video/');
             if (!isVideo) {
                 this.$message.error('请上传视频文件!');

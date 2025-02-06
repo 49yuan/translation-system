@@ -11,10 +11,11 @@
                 <!-- <div v-if="currentTab === '音频识别'" class="content" id="audio"> -->
                 <div class="text_area" v-html="recognitionResult" placeholder="识别结果将显示在这里">
                 </div>
-                <div class="button1">
+                <!-- <div class="button1">
                     <el-button type="primary" @click="startRecording">开始录音</el-button>
                     <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
-                </div>
+                </div> -->
+                <div style="height: 10px;"></div>
                 <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
                     :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
                     :on-change="handleChange" class="button">
@@ -25,7 +26,18 @@
                         @click="hkTozh">
                         {{ isTranslating ? '翻译中...' : '中文翻译' }}
                     </el-button>
-                    <el-button style="margin-left: 10px;" type="success">导出</el-button>
+                    <el-dropdown style="margin-left: 10px;" @command="handleExportCommand">
+                        <el-button type="success">
+                            导出<i class="el-icon-arrow-down el-icon--right"></i>
+                        </el-button>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="excel">导出为 Excel</el-dropdown-item>
+                                <el-dropdown-item command="word">导出为 Word</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <!-- <el-button style="margin-left: 10px;" type="success">导出</el-button> -->
                     <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
                     <!-- <div style="margin-top: 15px;">
                             <el-tag>{{ audioName }}</el-tag>
@@ -62,6 +74,7 @@ export default {
             // videoFileList: [],
             highlightedTexts: [], // 用于存储高亮文本和时间戳
             isTranslating: false, // 控制翻译按钮的状态
+            recognitionData: '',
         };
     },
     methods: {
@@ -158,6 +171,7 @@ export default {
                     }
                 });
                 if (response.data.code === 200) {
+                    this.recognitionData = response.data.data;
                     const recognitionResults = response.data.data.recognition_result;
                     this.highlightedTexts = recognitionResults.map(item => ({
                         text: item.text,
@@ -201,6 +215,72 @@ export default {
             });
         },
 
+        //导出
+        exportFile(format) {
+            if (!this.recognitionData) {
+                this.$message.error('请先进行音频识别');
+                return;
+            }
+
+            let url = '';
+            if (format === 'excel') {
+                url = '/export/diarization/excel';
+            } else if (format === 'word') {
+                url = '/export/diarization/word';
+            } else {
+                this.$message.error('无效的导出格式');
+                return;
+            }
+            const filename = 'recognition_result';
+            url += `?filename=${filename}`;
+            const requestData = {
+                speaker_num: this.recognitionData.speaker_num,
+                recognition_result: this.recognitionData.recognition_result.map(item => ({
+                    text: item.text,
+                    start_time: item.start_time,
+                    end_time: item.end_time,
+                    speakers: item.speaker.map(speaker => ({
+                        name: speaker.name,
+                        similarity: speaker.similarity,
+                        speaker_id: speaker.speaker_id
+                    }))
+                }))
+            };
+
+            axios.post(url, requestData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                responseType: 'blob'
+            })
+                .then(response => {
+                    let mimeType = '';
+                    if (format === 'excel') {
+                        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    } else if (format === 'word') {
+                        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                    }
+
+                    const blob = new Blob([response.data], { type: mimeType });
+                    const downloadUrl = window.URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('download', `output.${format}`); // 设置文件名
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl); // 释放对象 URL
+                    this.$message.success(`导出为 ${format} 成功`);
+                })
+                .catch(error => {
+                    console.error('导出失败:', error);
+                    this.$message.error('导出失败');
+                });
+        },
+        handleExportCommand(command) {
+            this.exportFile(command);
+        },
         // hkToen() {
         //     if (!this.audioFile) {
         //         this.$message.error('请先选择音频文件');
@@ -337,7 +417,7 @@ export default {
 .container {
     position: relative;
     width: 60%;
-    height: 70vh;
+    height: 60vh;
     margin: auto;
     margin-top: 100px;
 }

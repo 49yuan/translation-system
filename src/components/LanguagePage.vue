@@ -6,10 +6,13 @@
                 accept=".mp3,.wav" list-type="text">
                 <el-button type="primary">上传音频文件</el-button>
             </el-upload>
-            <el-button type="success" @click="uploadFiles" :loading="Identifying" :disabled="Identifying">{{ Identifying ?
-                '识别中...' : '语种识别' }}</el-button>
-            <el-button type="success" @click="isminnan" :loading="Identifying1" :disabled="Identifying1">{{ Identifying1 ?
-                '识别中...' : '闽南语识别' }}</el-button>
+            <!-- <el-button type="success" @click="uploadFiles" :loading="Identifying" :disabled="Identifying">{{ Identifying ?
+                '识别中...' : '语种识别' }}</el-button> -->
+            <div class="b-isminnan">
+                <el-button type="success" @click="isminnan" :loading="Identifying1" :disabled="Identifying1">{{ Identifying1
+                    ?
+                    '识别中...' : '闽南语识别' }}</el-button>
+            </div>
         </el-card>
         <el-card class="result-area">
             <div v-if="displaySection === 'results'">
@@ -242,9 +245,16 @@ export default {
 .upload-area {
     width: 80%;
     margin-bottom: 20px;
+    position: relative;
 }
 
 .result-area {
     width: 80%;
+}
+
+.b-isminnan {
+    position: absolute;
+    top: 20px;
+    left: 145px;
 }
 </style>
