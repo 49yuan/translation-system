@@ -226,27 +226,34 @@ export default {
             if (format === 'excel') {
                 url = '/export/diarization/excel';
             } else if (format === 'word') {
-                url = '/export/diarization/word';
+                url = '/export/recognition/word';
             } else {
                 this.$message.error('无效的导出格式');
                 return;
             }
-            const filename = 'recognition_result';
+            // 使用用户上传的音频文件名作为基础文件名
+            const baseFilename = this.audioName.replace(/\.[^/.]+$/, ""); // 去掉文件扩展名
+            const filename = `${baseFilename}.${format === 'excel' ? 'xlsx' : 'docx'}`; // 根据格式添加扩展名
             url += `?filename=${filename}`;
-            const requestData = {
-                speaker_num: this.recognitionData.speaker_num,
-                recognition_result: this.recognitionData.recognition_result.map(item => ({
-                    text: item.text,
-                    start_time: item.start_time,
-                    end_time: item.end_time,
-                    speakers: item.speaker.map(speaker => ({
-                        name: speaker.name,
-                        similarity: speaker.similarity,
-                        speaker_id: speaker.speaker_id
+            let requestData;
+            if (format === 'excel') {
+                // Excel 导出请求数据
+                requestData = {
+                    speaker_num: this.recognitionData.speaker_num,
+                    recognition_result: this.recognitionData.recognition_result.map(item => ({
+                        text: item.text,
+                        start_time: item.start_time,
+                        end_time: item.end_time,
+                        speakers: item.speaker.map(speaker => ({
+                            name: speaker.name,
+                            similarity: speaker.similarity,
+                            speaker_id: speaker.speaker_id
+                        }))
                     }))
-                }))
-            };
-
+                };
+            } else if (format === 'word') {
+                requestData = this.recognitionData.recognition_result.map(item => item.text).join('\n');
+            }
             axios.post(url, requestData, {
                 headers: {
                     'Content-Type': 'application/json'
@@ -266,7 +273,8 @@ export default {
 
                     const link = document.createElement('a');
                     link.href = downloadUrl;
-                    link.setAttribute('download', `output.${format}`); // 设置文件名
+                    link.download = filename;
+                    //link.setAttribute('download', `output.${format}`); // 设置文件名
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

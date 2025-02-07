@@ -82,6 +82,17 @@
             <input type="file" @change="handleFileUpload" style="display: none;" ref="fileInput" />
             <audio ref="audioPlayer" :src="audioSrc" @loadedmetadata="setAudioDuration" @timeupdate="onTimeUpdate"
                 controls></audio>
+            <el-dropdown @command="handleExportCommand">
+                <el-button type="success">
+                    导出<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item command="excel">导出为 Excel</el-dropdown-item>
+                        <el-dropdown-item command="word">导出为 Word</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
         </div>
         <div class="chat-list" ref="chatList">
             <div v-for="(item, index) in filteredChatItems" :key="index" class="chat-item-box">
@@ -134,7 +145,8 @@ const isTranlation = ref(false);
 // 定义文件输入框的引用
 const addVoiceInput = ref(null);
 const speakerInput = ref(null);
-
+const recognitionData = ref('');
+const audioName = ref('');
 // 触发文件选择的方法
 const triggerAddVoiceUpload = () => {
     addVoiceInput.value.click(); // 触发隐藏的文件输入框
@@ -158,6 +170,7 @@ function triggerFileInput() {
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
+        audioName.value = file.name;
         const formData = new FormData();
         formData.append('file', file);
 
@@ -182,6 +195,15 @@ function handleFileUpload(event) {
         })
             .then(response => {
                 if (response.data.code === 200) {
+                    // 如果 speaker_num 超过 speakerColors，动态生成随机颜色
+                    const totalSpeakers = response.data.data.speaker_num;
+                    for (let i = 0; i < totalSpeakers; i++) {
+                        if (!speakerColors[i]) {
+                            speakerColors[i] = generateRandomColor(); // 生成随机颜色
+                        }
+                    }
+
+                    recognitionData.value = response.data.data;
                     chatItems.value = response.data.data.recognition_result.map((item, index) => {
                         const speaker = item.speaker[0];
                         return {
@@ -215,6 +237,76 @@ function onTimeUpdate() {
     highlightedIndex.value = chatItems.value.findIndex(item =>
         currentTime >= item.start_time && currentTime <= item.end_time
     );
+}
+
+//导出
+function exportFile(format) {
+    if (!recognitionData.value) {
+        alert('请先进行音频识别');
+        return;
+    }
+
+    let url = '';
+    if (format === 'excel') {
+        url = '/export/diarization/excel';
+    } else if (format === 'word') {
+        url = '/export/diarization/word';
+    } else {
+        alert('无效的导出格式');
+        return;
+    }
+
+    // 使用用户上传的音频文件名作为基础文件名
+    const baseFilename = audioName.value.replace(/\.[^/.]+$/, "");
+    const filename = `${baseFilename}.${format === 'excel' ? 'xlsx' : 'docx'}`;
+    url += `?filename=${filename}`;
+    const requestData = {
+        speaker_num: recognitionData.value.speaker_num,
+        recognition_result: recognitionData.value.recognition_result.map(item => ({
+            text: item.text,
+            start_time: item.start_time,
+            end_time: item.end_time,
+            speakers: item.speaker.map(speaker => ({
+                name: speaker.name,
+                similarity: speaker.similarity,
+                speaker_id: speaker.speaker_id
+            }))
+        }))
+    };
+
+    axios.post(url, requestData, {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        responseType: 'blob'
+    })
+        .then(response => {
+            let mimeType = '';
+            if (format === 'excel') {
+                mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            } else if (format === 'word') {
+                mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            }
+
+            const blob = new Blob([response.data], { type: mimeType });
+            const downloadUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = filename; // 设置下载文件名
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl); // 释放对象 URL
+            //alert(`导出为 ${format === 'excel' ? 'xlsx' : 'docx'} 成功`); // 提示用户
+        })
+        .catch(error => {
+            console.error('导出失败:', error);
+            alert('导出失败');
+        });
+}
+function handleExportCommand(command) {
+    exportFile(command);
 }
 
 // 获取说话人列表
@@ -618,7 +710,7 @@ onMounted(fetchSpeakers);
     position: fixed;
     left: 4%;
     margin-top: 100px;
-    width: 14%;
+    width: 244px;
     text-align: center;
 }
 
