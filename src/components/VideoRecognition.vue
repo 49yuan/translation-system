@@ -216,40 +216,66 @@ export default {
             console.log(`选段翻译区域: ${start} - ${end}`);
 
             // 裁剪视频
-            this.clipTranslate(start, end, this.videoFile).then(processedVideo => {
-                // 创建一个 Blob 对象
-                const blob = new Blob([processedVideo], { type: 'video/mp4' });
-                this.isTranslating1 = true;
-                // 创建 FormData 并添加裁剪后的视频文件
-                const formData = new FormData();
-                formData.append('file', blob, 'segment.mp4');
+            // this.clipTranslate(start, end, this.videoFile).then(processedVideo => {
+            //     // 创建一个 Blob 对象
+            //     const blob = new Blob([processedVideo], { type: 'video/mp4' });
+            //     this.isTranslating1 = true;
+            //     // 创建 FormData 并添加裁剪后的视频文件
+            //     const formData = new FormData();
+            //     formData.append('file', blob, 'segment.mp4');
 
-                // 发送裁剪后的视频到后端
-                axios.post('/speaker_diarization', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }).then(response => {
-                    if (response.data.code === 200) {
-                        const subtitles = response.data.data.recognition_result;
-                        this.subtitles = subtitles.map(subtitle => ({
-                            text: subtitle.text,
-                            start_time: subtitle.start_time + start,
-                            end_time: subtitle.end_time + start,
-                        }));
-                        this.renderHighlightedText();
-                    } else {
-                        this.$message.error('选段翻译失败');
-                    }
-                }).catch(error => {
-                    console.error('选段翻译失败:', error);
+            //     // 发送裁剪后的视频到后端
+            //     axios.post('/speaker_diarization', formData, {
+            //         headers: {
+            //             'Content-Type': 'multipart/form-data'
+            //         }
+            //     }).then(response => {
+            //         if (response.data.code === 200) {
+            //             const subtitles = response.data.data.recognition_result;
+            //             this.subtitles = subtitles.map(subtitle => ({
+            //                 text: subtitle.text,
+            //                 start_time: subtitle.start_time + start,
+            //                 end_time: subtitle.end_time + start,
+            //             }));
+            //             this.renderHighlightedText();
+            //         } else {
+            //             this.$message.error('选段翻译失败');
+            //         }
+            //     }).catch(error => {
+            //         console.error('选段翻译失败:', error);
+            //         this.$message.error('选段翻译失败');
+            //     }).finally(() => {
+            //         this.isTranslating1 = false;
+            //     });
+            // }).catch(error => {
+            //     console.error('裁剪视频失败:', error);
+            //     this.$message.error('裁剪视频失败');
+            // });
+            const url = '/speaker_diarization' + `?start_time=${start}` + `&end_time=${end}`;
+            const formData = new FormData();
+            this.isTranslating1 = true;
+            formData.append('file', this.videoFile);
+            axios.post(url, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(response => {
+                if (response.data.code === 200) {
+                    const subtitles = response.data.data.recognition_result;
+                    this.subtitles = subtitles.map(subtitle => ({
+                        text: subtitle.text,
+                        start_time: subtitle.start_time + start,
+                        end_time: subtitle.end_time + start,
+                    }));
+                    this.renderHighlightedText();
+                } else {
                     this.$message.error('选段翻译失败');
-                }).finally(() => {
-                    this.isTranslating1 = false;
-                });
+                }
             }).catch(error => {
-                console.error('裁剪视频失败:', error);
-                this.$message.error('裁剪视频失败');
+                console.error('选段翻译失败:', error);
+                this.$message.error('选段翻译失败');
+            }).finally(() => {
+                this.isTranslating1 = false;
             });
 
 
