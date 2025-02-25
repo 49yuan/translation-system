@@ -15,4 +15,4 @@
 ![DialoguePage](./src/assets/works/图片4.png)
 ## 闽南语语种识别界面
 支持用户一次性上传多个文件，识别区分闽南语素材和其他语种
-![LanguagePage](./src/assets/works/图片1.png)
+![LanguagePage](./src/assets/works/图片5.png)
