@@ -61,6 +61,7 @@ export default {
 .menu {
     line-height: 60px;
     height: 60px;
+    overflow: hidden;
 }
 
 .flex-grow {
