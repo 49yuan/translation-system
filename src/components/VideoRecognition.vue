@@ -1,27 +1,16 @@
 <template>
     <!-- <div v-if="currentTab === '视频识别'" class="content" id="video"> -->
     <div class="video-page">
+
         <div class="video-box">
-            <video ref="videoPlayer" controls></video>
+            <el-card class="video-card" style="height: 560px; width: 100%;">
+                <div style="width: 43vw;"></div>
+                <video ref="videoPlayer" controls></video>
+            </el-card>
         </div>
+
         <div class="fanyi-box">
             <el-card style="height: 560px;width: 100%;">
-                <div class="operation-area">
-                    <el-upload :before-upload="beforeVideoUpload" :on-change="handleVideoChange" :auto-upload="false"
-                        :show-file-list="false" class="button">
-                        <el-button type="primary">上传视频文件</el-button>
-                    </el-upload>
-                    <el-button type="success" @click="fetchSubtitles" :loading="isTranslating2" :disabled="isTranslating2">
-                        {{
-                            isTranslating2 ? '翻译中...' : '整体翻译' }}</el-button>
-                    <el-button style="margin-left: 10px;" type="success" @click="selectSegment" :loading="isTranslating1"
-                        :disabled="isTranslating1"> {{ isTranslating1 ? '翻译中...' : '选段翻译' }}</el-button>
-                    <el-slider v-model="videoTimestamp" :min="0" :max="videoDuration" range show-stops :marks="marks"
-                        @change="handleTimestampChange" class="video-slider"></el-slider>
-                    <!-- <div style="margin-top: 15px;">
-                            <el-tag>{{ videoName }}</el-tag>
-                        </div> -->
-                </div>
                 <div class="text_area" v-html="recognitionResult" placeholder="识别结果将显示在这里">
                 </div>
                 <!-- <div class="subtitle-area">
@@ -31,6 +20,33 @@
                     </li>
                 </ul>
             </div> -->
+                <div class="operation-area">
+                    <el-slider v-model="videoTimestamp" :min="0" :max="videoDuration" range show-stops :marks="marks"
+                        @change="handleTimestampChange" class="video-slider"></el-slider>
+                    <div class="right-end">
+                        <el-upload :before-upload="beforeVideoUpload" :on-change="handleVideoChange" :auto-upload="false"
+                            :show-file-list="false" class="button">
+                            <el-button type="primary" class="f-button"> <el-icon>
+                                    <FolderOpened />
+                                </el-icon>上传视频文件</el-button>
+                        </el-upload>
+                        <el-button type="primary" class="f-button" @click="fetchSubtitles" :loading="isTranslating2"
+                            :disabled="isTranslating2">
+                            <el-icon>
+                                <Connection />
+                            </el-icon>
+                            {{
+                                isTranslating2 ? '翻译中...' : '整体翻译' }}</el-button>
+                        <el-button style="margin-left: 10px;" type="primary" class="f-button" @click="selectSegment"
+                            :loading="isTranslating1" :disabled="isTranslating1"><el-icon>
+                                <Scissor />
+                            </el-icon> {{ isTranslating1 ? '翻译中...' : '选段翻译'
+                            }}</el-button>
+                    </div>
+                    <!-- <div style="margin-top: 15px;">
+                            <el-tag>{{ videoName }}</el-tag>
+                        </div> -->
+                </div>
             </el-card>
         </div>
     </div>
@@ -419,10 +435,20 @@ export default {
     justify-content: center;
 }
 
+.video-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+
+}
+
 video {
     width: 100%;
     max-width: 100%;
     max-height: 100%;
+    object-fit: cover;
 }
 
 .fanyi-box {
@@ -447,6 +473,12 @@ video {
 .button {
     display: inline-block;
     margin-right: 10px;
+}
+
+.right-end {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
 }
 </style>
 <style>

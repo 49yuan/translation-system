@@ -6,6 +6,8 @@ import DialoguePage from './components/DialoguePage';
 import ChangePassword from './components/ChangePassword';
 import VideoRecognition from './components/VideoRecognition';
 import LanguagePage from './components/LanguagePage';
+import RecordPage from './components/Record.vue';
+import MiandianPage from './components/TranslationModule.vue';
 
 const routes = [
     { path: '/', redirect: '/login' },
@@ -23,7 +25,9 @@ const routes = [
                 component: VideoRecognition
             },
             { path: '/dialogue', component: DialoguePage },
-            { path: '/language_recognition', component: LanguagePage }
+            { path: '/language_recognition', component: LanguagePage },
+            { path: '/record', component: RecordPage },
+            { path: '/translate', component: MiandianPage }
         ]
     }
 ];

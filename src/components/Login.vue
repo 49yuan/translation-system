@@ -1,6 +1,6 @@
 <template>
     <div class="login">
-        <h3 class="title">智影动力闽南语语音演示系统</h3>
+        <h3 class="title">智影动力缅甸语翻译演示系统</h3>
         <div class="login_container">
             <div class="login_box">
                 <div class="avatar_box">
@@ -8,14 +8,14 @@
                 </div>
                 <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="0px" class="login-form">
                     <el-form-item prop="username">
-                        <el-input v-model="loginForm.username" prefix-icon="el-icon-user"></el-input>
+                        <el-input v-model="loginForm.username" prefix-icon="user"></el-input>
                     </el-form-item>
                     <el-form-item prop="password">
-                        <el-input v-model="loginForm.password" prefix-icon="el-icon-lock" type="password"
+                        <el-input v-model="loginForm.password" prefix-icon="lock" type="password"
                             @keyup.enter="handleLogin"></el-input>
                     </el-form-item>
                     <el-form-item style="width:100%;">
-                        <el-button :loading="loading" size="large" type="primary" style="width:100%;"
+                        <el-button :loading="loading" size="large" type="primary" style="width:100%;" class="f-button"
                             @click.prevent="handleLogin">
                             <span v-if="!loading">登 录</span>
                             <span v-else>登 录 中...</span>
@@ -101,7 +101,8 @@ export default {
     align-items: center;
     justify-content: center;
     height: 95vh;
-    background-size: cover;
+
+    background-color: transparent;
 }
 
 .title {
@@ -109,7 +110,7 @@ export default {
     top: 0;
     margin: 20px 0;
     text-align: center;
-    color: #707070;
+    color: #353535;
 }
 
 .el-login-footer {

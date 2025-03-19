@@ -5,9 +5,43 @@ body,
     height: 100%;
     margin: 0;
     padding: 0;
+    background: linear-gradient(to bottom, #d3d1ec, #edeff7) !important;
 }
 
 a {
     color: black;
     text-decoration: none;
+}
+
+.f-button {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+}
+
+.f-button:hover {
+    background-color: darken(#3b82f6, 10%);
+    border-color: darken(#3b82f6, 10%);
+}
+
+.f-button:active {
+    background-color: darken(#3b82f6, 20%);
+    border-color: darken(#3b82f6, 20%);
+}
+
+.el-button--primary.is-plain:hover {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #fff !important;
+}
+
+.el-button--primary.is-plain:active {
+    background-color: darken(#3b82f6, 20%) !important;
+    border-color: darken(#3b82f6, 20%) !important;
+    color: #fff !important;
+
+}
+
+.el-icon {
+    margin-right: 5px;
 }

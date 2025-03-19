@@ -15,37 +15,47 @@
                     <el-button type="primary" @click="startRecording">开始录音</el-button>
                     <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
                 </div> -->
-                <div style="height: 10px;"></div>
-                <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
-                    :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
-                    :on-change="handleChange" class="button">
-                    <template #trigger>
-                        <el-button type="primary">选择音频文件</el-button>
-                    </template>
-                    <el-button style="margin-left: 10px;" type="success" :loading="isTranslating" :disabled="isTranslating"
-                        @click="hkTozh">
-                        {{ isTranslating ? '翻译中...' : '中文翻译' }}
-                    </el-button>
-                    <el-dropdown style="margin-left: 10px;" @command="handleExportCommand">
-                        <el-button type="success">
-                            导出<i class="el-icon-arrow-down el-icon--right"></i>
-                        </el-button>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item command="excel">导出为 Excel</el-dropdown-item>
-                                <el-dropdown-item command="word">导出为 Word</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                    <!-- <el-button style="margin-left: 10px;" type="success">导出</el-button> -->
-                    <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
-                    <!-- <div style="margin-top: 15px;">
+                <div style="height: 20px;"></div>
+                <div class="audio-control-container">
+                    <audio ref="audioPlayer" controls></audio>
+                    <div class="button-group">
+                        <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
+                            :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
+                            :on-change="handleChange" class="button">
+                            <template #trigger>
+                                <el-button type="primary" class="f-button"><el-icon>
+                                        <FolderOpened />
+                                    </el-icon>选择音频文件</el-button>
+                            </template>
+                            <el-button style="margin-left: 10px;" type="primary" class="f-button margin-bottom-1"
+                                :loading="isTranslating" :disabled="isTranslating" @click="hkTozh">
+                                <el-icon>
+                                    <Connection />
+                                </el-icon>
+                                {{ isTranslating ? '翻译中...' : '中文翻译' }}
+                            </el-button>
+                            <el-dropdown style="margin-left: 10px;" @command="handleExportCommand">
+                                <el-button type="primary" plain>
+                                    <el-icon>
+                                        <Share />
+                                    </el-icon>
+                                    导出<i class="el-icon-arrow-down el-icon--right"></i>
+                                </el-button>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item command="excel">导出为 Excel</el-dropdown-item>
+                                        <el-dropdown-item command="word">导出为 Word</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                            <!-- <el-button style="margin-left: 10px;" type="success">导出</el-button> -->
+                            <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
+                            <!-- <div style="margin-top: 15px;">
                             <el-tag>{{ audioName }}</el-tag>
                         </div> -->
-                </el-upload>
-
-                <audio ref="audioPlayer" controls></audio>
-                <!-- </div> -->
+                        </el-upload>
+                    </div>
+                </div>
             </div>
         </el-card>
     </div>
@@ -432,10 +442,9 @@ export default {
 
 .audio-upload-card {
     width: 100%;
-    height: 100%;
+    height: 520px;
     left: 50%;
     border-top-left-radius: 0;
-    overflow-y: auto;
 }
 
 .audio-upload-container {
@@ -479,6 +488,30 @@ video {
     border: #848484 1px solid;
     padding: 10px;
     box-sizing: border-box;
+}
+
+.audio-control-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.audio-control-container audio {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.button-group {
+    display: flex;
+    align-items: center;
+}
+
+::v-deep .el-upload-list {
+    max-width: 251px;
+}
+
+.margin-bottom-1 {
+    margin-bottom: 5px;
 }
 </style>
 <style>

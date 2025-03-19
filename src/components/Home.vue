@@ -1,17 +1,19 @@
 <template>
-    <el-menu class="menu" mode="horizontal" :ellipsis="false" background-color="#545c64" text-color="#fff"
-        active-text-color="#ffd04b" router>
+    <el-menu class="menu" mode="horizontal" :ellipsis="false" background-color="#151a3a" text-color="#fff"
+        active-text-color="#3b82f6" router>
         <el-menu-item class="logo" style="font-size: 17px;">
-            <img src="@/assets/logo.png" alt="Logo" style="height: 70px;" />
-            厦门大学智影动力AIGC系统 &nbsp; | &nbsp; <span>语音生成</span>
+            <img :src="logo" alt="Logo" style="height: 70px;" />
+            {{ name }} &nbsp; | &nbsp; <span>{{ subtitle }}</span>
         </el-menu-item>
         <el-sub-menu index="/speech_recognition" style="font-size: 17px;">
             <template #title>闽南语翻译</template>
             <el-menu-item index="/speech_recognition">音频识别</el-menu-item>
             <el-menu-item index="/speech_recognition/video">视频识别</el-menu-item>
         </el-sub-menu>
+        <!-- <el-menu-item index="/translate" style="font-size: 17px;">缅甸语翻译</el-menu-item> -->
         <el-menu-item index="/dialogue" style="font-size: 17px;">闽南语对话翻译</el-menu-item>
         <el-menu-item index="/language_recognition" style="font-size: 17px;">闽南语语种识别</el-menu-item>
+        <!-- <el-menu-item index="/record" style="font-size: 17px;">翻译记录</el-menu-item> -->
         <el-menu-item index="/speech_synthesis" style="font-size: 17px;" disabled>闽南语合成</el-menu-item>
         <div class="flex-grow" />
         <el-menu-item style="font-size: 17px;">{{ getUsername() }}</el-menu-item>
@@ -30,6 +32,13 @@
 import { ElMessageBox } from 'element-plus';
 export default {
     name: 'HomePage',
+    data() {
+        return {
+            logo: process.env.VUE_APP_LOGO ? require(process.env.VUE_APP_LOGO) : '',
+            name: process.env.VUE_APP_NAME,
+            subtitle: process.env.VUE_APP_SUBTITLE,
+        };
+    },
     methods: {
         goToChangePassword() {
             this.$router.push('/changep');
@@ -70,6 +79,10 @@ export default {
 
 .el-sub-menu__title {
     font-size: 17px !important;
+}
+
+.el-menu--horizontal.el-menu {
+    border-bottom: none !important;
 }
 </style>
   

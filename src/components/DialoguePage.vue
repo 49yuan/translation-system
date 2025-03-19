@@ -31,7 +31,9 @@
                 </el-scrollbar>
             </div>
             <div class="creatspeaker">
-                <el-button type="primary" @click="openCreateSpeakerDialog">创建说话人</el-button>
+                <el-button type="primary" class="f-button" @click="openCreateSpeakerDialog"> <el-icon>
+                        <DocumentAdd />
+                    </el-icon>创建说话人</el-button>
             </div>
         </el-card>
 
@@ -42,7 +44,7 @@
                     <h3>为 {{ selectedSpeaker.name }} 添加更多语音</h3>
                 </div>
                 <div class="dialog-body">
-                    <el-button type="primary" class="upload-button" @click="triggerAddVoiceUpload">
+                    <el-button type="primary" plain class="upload-button" @click="triggerAddVoiceUpload">
                         选择文件
                     </el-button>
                     <input type="file" ref="addVoiceInput" @change="handleAddVoiceFileUpload" multiple
@@ -63,27 +65,33 @@
                 </div>
                 <div class="dialog-body">
                     <el-input class="new-name" v-model="newSpeakerName" placeholder="请输入说话人名称"></el-input>
-                    <el-button type="primary" class="upload-button" @click="triggerSpeakerUpload">
+                    <el-button type="primary" plain class="upload-button" @click="triggerSpeakerUpload">
                         选择文件
                     </el-button>
                     <input type="file" ref="speakerInput" @change="handleSpeakerFileUpload" multiple
                         style="display: none;" />
                 </div>
                 <div class="dialog-footer">
-                    <el-button type="primary" @click="createSpeaker">确定</el-button>
+                    <el-button type="primary" class="f-button" @click="createSpeaker">确定</el-button>
                     <el-button @click="closeCreateSpeakerDialog">取消</el-button>
                 </div>
             </el-card>
         </div>
         <div class="menu">
-            <el-button type="primary" @click="triggerFileInput" :loading="isTranlation" :disabled="isTranlation">{{
-                isTranlation ?
-                '翻译中...' : '选择音频文件' }}</el-button>
-            <input type="file" @change="handleFileUpload" style="display: none;" ref="fileInput" />
             <audio ref="audioPlayer" :src="audioSrc" @loadedmetadata="setAudioDuration" @timeupdate="onTimeUpdate"
                 controls></audio>
+            <el-button type="primary" class="f-button" @click="triggerFileInput" :loading="isTranlation"
+                :disabled="isTranlation"><el-icon>
+                    <FolderOpened />
+                </el-icon>{{
+                    isTranlation ?
+                    '翻译中...' : '选择音频文件' }}</el-button>
+            <input type="file" @change="handleFileUpload" style="display: none;" ref="fileInput" />
             <el-dropdown @command="handleExportCommand">
-                <el-button type="success">
+                <el-button type="primary" plain>
+                    <el-icon>
+                        <Share />
+                    </el-icon>
                     导出<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <template #dropdown>
@@ -744,7 +752,7 @@ onMounted(fetchSpeakers);
 } */
 
 .speaker-card .selected {
-    background: #3d9dff;
+    background: #3b82f6;
     color: white;
 }
 
@@ -819,11 +827,11 @@ h4 {
 }
 
 .chat-list .highindex {
-    background-color: #3d9dff;
+    background-color: #3b82f6;
 }
 
 .speaker_items button.selected {
-    background-color: #3d9dff;
+    background-color: #3b82f6;
     color: aliceblue;
 }
 </style>
