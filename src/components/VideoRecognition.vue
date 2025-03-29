@@ -56,7 +56,8 @@
 <script>
 import axios from 'axios';
 //import Worker from 'worker-loader!@/workers/ffmpeg.worker.js'; // 引入 Web Worker
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile } from '@ffmpeg/util'
 export default {
     name: 'VideoRecognition',
     data() {
@@ -158,16 +159,25 @@ export default {
         //     // videoPlayer.addEventListener('timeupdate', this.syncSubtitles);
         // },
         fetchSubtitles() {
-            this.isTranslating2 = true;
-            const formData = new FormData();
-            formData.append('file', this.videoFile);
+            const [start, end] = this.videoTimestamp;
+            // 提取视频文件为音频
+            this.extractAudio(start, end, this.videoFile)
+                .then(wav => {
+                    // 创建一个 Blob 对象
+                    const blob = new Blob([wav.data], { type: 'audio/wav' });
+                    this.isTranslating2 = true;
+                    // 创建 FormData 并添加裁剪后的视频文件
+                    const formData = new FormData();
+                    formData.append('file', blob, wav.name);
 
-            try {
-                axios.post('/speaker_diarization', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }).then(response => {
+                    // 发送裁剪后的视频到后端
+                    return axios.post('/speaker_diarization', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                })
+                .then(response => {
                     if (response.data.code === 200) {
                         const subtitles = response.data.data.recognition_result;
                         this.subtitles = subtitles.map(subtitle => ({
@@ -179,16 +189,14 @@ export default {
                     } else {
                         this.$message.error('获取字幕失败');
                     }
-                }).catch(error => {
+                })
+                .catch(error => {
                     console.error('获取字幕失败:', error);
                     this.$message.error('获取字幕失败');
-                }).finally(() => {
+                })
+                .finally(() => {
                     this.isTranslating2 = false;
                 });
-            } catch (error) {
-                console.error('获取字幕失败:', error);
-                this.$message.error('获取字幕失败');
-            }
         },
         renderHighlightedText() {
             let html = '';
@@ -267,34 +275,45 @@ export default {
             //     console.error('裁剪视频失败:', error);
             //     this.$message.error('裁剪视频失败');
             // });
-            const url = '/speaker_diarization' + `?start_time=${start}` + `&end_time=${end}`;
-            const formData = new FormData();
-            this.isTranslating1 = true;
-            formData.append('file', this.videoFile);
-            axios.post(url, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }).then(response => {
-                if (response.data.code === 200) {
-                    const subtitles = response.data.data.recognition_result;
-                    this.subtitles = subtitles.map(subtitle => ({
-                        text: subtitle.text,
-                        start_time: subtitle.start_time + start,
-                        end_time: subtitle.end_time + start,
-                    }));
-                    this.renderHighlightedText();
-                } else {
+
+
+            // 提取视频文件为音频
+            this.extractAudio(start, end, this.videoFile)
+                .then(wav => {
+                    // 创建一个 Blob 对象
+                    const blob = new Blob([wav.data], { type: 'audio/wav' });
+                    this.isTranslating1 = true;
+                    // 创建 FormData 并添加裁剪后的视频文件
+                    const formData = new FormData();
+                    formData.append('file', blob, wav.name);
+
+                    // 发送裁剪后的视频到后端
+                    return axios.post('/speaker_diarization', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                })
+                .then(response => {
+                    if (response.data.code === 200) {
+                        const subtitles = response.data.data.recognition_result;
+                        this.subtitles = subtitles.map(subtitle => ({
+                            text: subtitle.text,
+                            start_time: subtitle.start_time,
+                            end_time: subtitle.end_time,
+                        }));
+                        this.renderHighlightedText();
+                    } else {
+                        this.$message.error('选段翻译失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('选段翻译失败:', error);
                     this.$message.error('选段翻译失败');
-                }
-            }).catch(error => {
-                console.error('选段翻译失败:', error);
-                this.$message.error('选段翻译失败');
-            }).finally(() => {
-                this.isTranslating1 = false;
-            });
-
-
+                })
+                .finally(() => {
+                    this.isTranslating1 = false;
+                });
         },
         formatTime(seconds) {
             const hours = Math.floor(seconds / 3600);
@@ -304,18 +323,16 @@ export default {
         },
         clipTranslate(start, end, videoFile) {
             return new Promise((resolve, reject) => {
-                const ffmpeg = createFFmpeg({
-                    log: false,
+                const ffmpeg = new FFmpeg();
+                ffmpeg.load({
                     corePath: '/plugin/ffmpeg-core.js',
                     wasmPath: '/plugin/ffmpeg-core.wasm',
-                    workerPath: '/plugin/ffmpeg-core.worker.js'
-                });
-
-                ffmpeg.load().then(() => {
+                }).then(() => {
                     console.log("FFmpeg 加载成功");
+                    // await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
                     fetchFile(videoFile).then(async file => {
                         ffmpeg.FS('writeFile', 'input.mp4', file);
-
+                        
                         try {
                             // 将秒转换为时间格式
                             const startTime = this.formatTime(start);
@@ -360,55 +377,186 @@ export default {
                 });
             });
         },
-        //提取音频方法
-        async extractAudio() {
-            try {
-                // 设置处理状态
-                this.processing = true;
-                this.processingStatus = '正在提取音频...';
+        // //提取音频方法
+        // async extractAudio() {
+        //     try {
+        //         // 设置处理状态
+        //         this.processing = true;
+        //         this.processingStatus = '正在提取音频...';
 
-                // 确保FFmpeg已加载
-                await this.loadFFmpeg();
+        //         // 确保FFmpeg已加载
+        //         await this.loadFFmpeg();
 
-                // 从处理文件列表中获取视频文件
-                const videoFile = this.processedFiles.find(f => f.type === 'video');
-                if (!videoFile) throw new Error('未找到视频文件');
+        //         // 从处理文件列表中获取视频文件
+        //         const videoFile = this.processedFiles.find(f => f.type === 'video');
+        //         if (!videoFile) throw new Error('未找到视频文件');
 
-                // 将视频文件写入FFmpeg虚拟文件系统
-                ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(videoFile.blob));
+        //         // 将视频文件写入FFmpeg虚拟文件系统
+        //         ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(videoFile.blob));
 
-                // 执行FFmpeg命令提取音频
-                // -i: 输入文件
-                // -vn: 禁用视频输出
-                // -acodec libmp3lame: 使用LAME编码器将音频编码为MP3格式
-                await ffmpeg.run(
-                    '-i', 'input.mp4',
-                    '-vn',
-                    '-acodec', 'libmp3lame',
-                    'audio.mp3'
-                );
+        //         // 执行FFmpeg命令提取音频
+        //         // -i: 输入文件
+        //         // -vn: 禁用视频输出
+        //         // -acodec libmp3lame: 使用LAME编码器将音频编码为MP3格式
+        //         await ffmpeg.run(
+        //             '-i', 'input.mp4',
+        //             '-vn',
+        //             '-acodec', 'libmp3lame',
+        //             'audio.mp3'
+        //         );
 
-                // 从FFmpeg文件系统读取提取的音频
-                const data = ffmpeg.FS('readFile', 'audio.mp3');
-                // 创建Blob对象用于下载
-                const blob = new Blob([data.buffer], { type: 'audio/mp3' });
+        //         // 从FFmpeg文件系统读取提取的音频
+        //         const data = ffmpeg.FS('readFile', 'audio.mp3');
+        //         // 创建Blob对象用于下载
+        //         const blob = new Blob([data.buffer], { type: 'audio/mp3' });
 
-                // 将处理结果添加到文件列表
-                this.processedFiles.push({
-                    name: 'extracted_audio.mp3', // 文件名
-                    type: 'audio', // 文件类型
-                    blob: blob, // 文件数据
-                    url: this.createDownloadUrl(blob) // 下载链接
+        //         // 将处理结果添加到文件列表
+        //         this.processedFiles.push({
+        //             name: 'extracted_audio.mp3', // 文件名
+        //             type: 'audio', // 文件类型
+        //             blob: blob, // 文件数据
+        //             url: this.createDownloadUrl(blob) // 下载链接
+        //         });
+
+        //     } catch (error) {
+        //         // 错误处理
+        //         console.error('音频提取失败:', error);
+        //     } finally {
+        //         // 重置处理状态
+        //         this.processing = false;
+        //     }
+        // },
+
+        // 提取音频
+        // extractAudio(start, end, prefile) {
+        //     return new Promise((resolve, reject) => {
+        //         const ffmpeg = createFFmpeg({
+        //             log: false,
+        //             corePath: '/ffmpeg/ffmpeg-core.js',
+        //             wasmPath: '/ffmpeg/ffmpeg-core.wasm',
+        //             workerPath: '/ffmpeg/ffmpeg-core.worker.js'
+        //         });
+
+        //         ffmpeg.load().then(() => {
+        //             console.log("FFmpeg 加载成功");
+        //             fetchFile(prefile).then(async file => {
+        //                 // const originName = prefile.name
+        //                 //                         .replace(/[【】【】]/g, '')
+        //                 //                         .replace(/[【】]/g, '')
+        //                 //                         .replace(/ /g, '_')
+        //                 //                         .replace(/[<>:"/\\|?*]/g, '') // 删除 Windows 非法字符
+        //                 //                         .replace(/\s+/g, '_');      // 替换所有空白符（包括换行、制表符等）
+        //                 // const outputName = originName.replace(/\.[^.]+$/, '_split.wav'); 
+        //                 const originName = prefile.name
+        //                 const outputName = "output.wav"; 
+        //                 ffmpeg.FS('writeFile', "input.mp4", file);
+
+        //                 try {
+        //                     // 将秒转换为时间格式
+        //                     const startTime = this.formatTime(start);
+        //                     const endTime = this.formatTime(end);
+        //                     console.log(startTime)
+        //                     console.log(endTime)
+        //                     console.log(outputName);
+                            
+        //                     // 执行裁剪命令
+        //                     const ffmpegCommand = [
+        //                         '-ss', startTime,
+        //                         '-i', "input.mp4",
+        //                         '-to', endTime,
+        //                         '-vn',
+        //                         '-c:a', 'pcm_s16le', // WAV 格式编码器
+        //                         outputName
+        //                     ];
+        //                     await ffmpeg.run(...ffmpegCommand);
+        //                     //await ffmpeg.run('-i', 'input.mp4', '-ss', start, '-to', end, '-c', 'copy', 'output.mp4');
+        //                     console.log("裁剪完成");
+
+        //                     //检查文件系统中的文件
+        //                     const files = ffmpeg.FS('readdir', '/');
+        //                     console.log("当前文件系统中的文件:", files);
+
+        //                     // 确保裁剪后的文件存在
+        //                     if (!files.includes(outputName)) {
+        //                         throw new Error("裁剪后的文件未生成");
+        //                     }
+
+        //                     // 读取裁剪后的视频文件
+        //                     const data = ffmpeg.FS('readFile', outputName);
+        //                     resolve({
+        //                         data: data,
+        //                         name: originName.replace(/\.[^.]+$/, '_split.wav')
+        //                     });
+        //                 } catch (error) {
+        //                     console.error("FFmpeg 命令执行失败或文件读取失败:", error);
+        //                     reject(error);
+        //                 }
+        //             }).catch(error => {
+        //                 console.error("文件读取失败:", error);
+        //                 reject(error);
+        //             });
+        //         }).catch(error => {
+        //             console.error("FFmpeg 初始化失败:", error);
+        //             reject(error);
+        //         });
+        //     });
+        // },
+
+        extractAudio(start, end, prefile) {
+            return new Promise((resolve, reject) => {
+                const ffmpeg = new FFmpeg();
+                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                ffmpeg.load({
+                    coreURL: "/plugin/ffmpeg-core.js",
+                    wasmURL: "/plugin/ffmpeg-core.wasm",
+                }).then(async () => {
+                    console.log("FFmpeg 加载成功");
+                    await ffmpeg.writeFile("input.mp4", await fetchFile(prefile));
+                    const originName = prefile.name
+                    const outputName = "output.wav"; 
+                    // 将秒转换为时间格式
+                    const startTime = this.formatTime(start);
+                    const endTime = this.formatTime(end);
+                    console.log(startTime)
+                    console.log(endTime)
+                    console.log(outputName);
+
+                    // 执行裁剪命令
+                    const ffmpegCommand = [
+                        '-ss', startTime,
+                        '-i', "input.mp4",
+                        '-to', endTime,
+                        '-vn',
+                        '-c:a', 'pcm_s16le', // WAV 格式编码器
+                        outputName
+                    ];
+                    await ffmpeg.exec(ffmpegCommand)
+                    console.log("裁剪完成");
+
+                    //检查文件系统中的文件
+                    ffmpeg.listDir("/").then(res => {
+                        console.log("当前文件系统中的文件:", res);
+                        // 检查是否存在 name 匹配的元素
+                        const isFileGenerated = res.some(item => item.name === outputName);
+                        // 确保裁剪后的文件存在
+                        if (!isFileGenerated) {
+                            throw new Error("裁剪后的文件未生成");
+                        }
+                    });
+
+                    // 读取裁剪后的视频文件
+                    const data = await ffmpeg.readFile(outputName);
+                    resolve({
+                        data: data,
+                        name: originName.replace(/\.[^.]+$/, '_split.wav')
+                    });
+                }).catch(error => {
+                    console.error("FFmpeg 初始化失败:", error);
+                    reject(error);
                 });
-
-            } catch (error) {
-                // 错误处理
-                console.error('音频提取失败:', error);
-            } finally {
-                // 重置处理状态
-                this.processing = false;
-            }
+            });
         },
+
         beforeDestroy() {
             // 组件销毁前移除事件监听
             const videoPlayer = this.$refs.videoPlayer;

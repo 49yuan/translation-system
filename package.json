@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --mode development --host 0.0.0.0 --port 5174",
+    "serve": "vue-cli-service serve --mode development --host 0.0.0.0 --port 5173",
     "build": "vue-cli-service build"
   },
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.9.8",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "axios": "^1.7.8",
     "core-js": "^3.8.3",
     "element-plus": "^2.9.5",
@@ -19,7 +20,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
-    "@ffmpeg/core": "^0.10.0",
+    "@ffmpeg/core": "^0.12.10",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "less": "^4.2.1",
