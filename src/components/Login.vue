@@ -4,7 +4,7 @@
         <div class="login_container">
             <div class="login_box">
                 <div class="avatar_box">
-                    <img src="../assets/logo.png">
+                    <img :src="logo">
                 </div>
                 <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="0px" class="login-form">
                     <el-form-item prop="username">
@@ -53,7 +53,8 @@ export default {
                     { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
                 ]
             },
-            loading: false
+            loading: false,
+            logo: window.g.logo,
         }
     },
     methods: {

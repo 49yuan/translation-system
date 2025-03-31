@@ -34,9 +34,9 @@ export default {
     name: 'HomePage',
     data() {
         return {
-            logo: process.env.VUE_APP_LOGO ? require(process.env.VUE_APP_LOGO) : '',
-            name: process.env.VUE_APP_NAME,
-            subtitle: process.env.VUE_APP_SUBTITLE,
+            logo: window.g.logo,
+            name: window.g.name,
+            subtitle: window.g.subtitle,
         };
     },
     methods: {
