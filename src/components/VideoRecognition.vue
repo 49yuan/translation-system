@@ -105,6 +105,8 @@ export default {
                         [this.videoDuration]: `${this.formatTime1(this.videoDuration)}`
                     };
                 });
+                // 清除字幕
+                this.recognitionResult = "";
             }
             //这部分是因为禁用了auto-upload,后端启用时或许可以解除
             // this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
@@ -160,12 +162,12 @@ export default {
         // },
         fetchSubtitles() {
             const [start, end] = this.videoTimestamp;
+            this.isTranslating2 = true;
             // 提取视频文件为音频
             this.extractAudio(start, end, this.videoFile)
                 .then(wav => {
                     // 创建一个 Blob 对象
                     const blob = new Blob([wav.data], { type: 'audio/wav' });
-                    this.isTranslating2 = true;
                     // 创建 FormData 并添加裁剪后的视频文件
                     const formData = new FormData();
                     formData.append('file', blob, wav.name);
@@ -200,8 +202,24 @@ export default {
         },
         renderHighlightedText() {
             let html = '';
+            // this.subtitles.forEach((subtitle, index) => {
+            //     html += `<span class="text_e" data-start="${subtitle.start_time}" data-end="${subtitle.end_time}">${subtitle.text}</span>`;
+            // });
+            let dot_num = 1;
             this.subtitles.forEach((subtitle, index) => {
+                // 将文本中的换行符转换为HTML换行标签
                 html += `<span class="text_e" data-start="${subtitle.start_time}" data-end="${subtitle.end_time}">${subtitle.text}</span>`;
+                if (subtitle.text.split('。').length - 1 > 3) {
+                    dot_num = 3;
+                } else if (subtitle.text.endsWith('。') || subtitle.text.endsWith('？')) {
+                    dot_num += 1;
+                }
+                if (dot_num >= 3) {
+                    html += `<br class="extra-line">`;
+                    dot_num = 0;
+                } else {
+                    dot_num += 1;
+                }
             });
             this.recognitionResult = html;
         },
@@ -632,5 +650,12 @@ video {
 <style>
 .highlight {
     background-color: yellow;
+}
+
+/* 控制段落后额外换行 */
+br.extra-line {
+    display: block;
+    margin-bottom: 1.2em; /* 比普通换行更大的间距 */
+    content: " ";
 }
 </style>
