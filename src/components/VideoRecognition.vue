@@ -205,11 +205,11 @@ export default {
             // this.subtitles.forEach((subtitle, index) => {
             //     html += `<span class="text_e" data-start="${subtitle.start_time}" data-end="${subtitle.end_time}">${subtitle.text}</span>`;
             // });
-            let dot_num = 1;
+            let dot_num = 0;
             this.subtitles.forEach((subtitle, index) => {
                 // 将文本中的换行符转换为HTML换行标签
                 html += `<span class="text_e" data-start="${subtitle.start_time}" data-end="${subtitle.end_time}">${subtitle.text}</span>`;
-                if (subtitle.text.split('。').length - 1 > 3) {
+                if (subtitle.text.split('。').length - 1 >= 3) { // 句子中的句号数量大于等于3
                     dot_num = 3;
                 } else if (subtitle.text.endsWith('。') || subtitle.text.endsWith('？')) {
                     dot_num += 1;
