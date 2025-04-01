@@ -26,7 +26,8 @@
         </div>
         <!--  底部  -->
         <div class="el-login-footer">
-            <span>Copyright © 智影动力 All Rights Reserved.</span>
+            <span>Copyright © 智影动力 All Rights Reserved.</span><br>
+            <span>备案号：</span><span><a href="https://beian.miit.gov.cn/" target="_blank">蜀ICP备2021026882号-1号</a></span>
         </div>
     </div>
 </template>
@@ -115,7 +116,7 @@ export default {
 }
 
 .el-login-footer {
-    height: 40px;
+    height: 100px;
     line-height: 40px;
     width: 100%;
     text-align: center;
