@@ -506,7 +506,7 @@ video {
     align-items: center;
 }
 
-::v-deep .el-upload-list {
+:deep(.el-upload-list) {
     max-width: 251px;
 }
 

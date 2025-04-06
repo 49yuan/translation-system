@@ -102,7 +102,7 @@
                 </template>
             </el-dropdown>
         </div>
-        <div class="chat-list" ref="chatList">
+        <!-- <div class="chat-list" ref="chatList">
             <div v-for="(item, index) in filteredChatItems" :key="index" class="chat-item-box">
                 <div class="avatar" :style="{ backgroundColor: item.color }">
                     <img src="@/assets/user.png" alt="User Icon">
@@ -110,6 +110,21 @@
                 <div class="content" @dblclick="seekAudio(item.start_time)"
                     :class="{ 'highindex': highlightedIndex === index }">
                     <div class="speaker">{{ item.speaker.name }}<span>{{ item.formatTime }}</span></div>
+                    <div class="main-content" v-html="item.text"></div>
+                </div>
+            </div>
+        </div> -->
+        <div class="chat-list" ref="chatList">
+            <div v-for="(item, index) in filteredChatItems" :key="index" class="chat-item-box">
+                <div class="avatar" :style="{ backgroundColor: item.color }">
+                    <!-- 显示两位数格式的说话人序号 -->
+                    <span class="speaker-number">
+                        {{ (item.speaker[0].speaker_id + 1).toString().padStart(2, '0') }}
+                    </span>
+                </div>
+                <div class="content" @dblclick="seekAudio(item.start_time)"
+                    :class="{ 'highindex': highlightedIndex === index }">
+                    <div class="speaker">{{ item.speaker[0].name }}<span>{{ item.formatTime }}</span></div>
                     <div class="main-content" v-html="item.text"></div>
                 </div>
             </div>
@@ -174,7 +189,7 @@ function triggerFileInput() {
     fileInput.value.click();
 }
 
-// 文件上传处理
+//文件上传处理
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
@@ -468,108 +483,63 @@ onMounted(fetchSpeakers);
 //         // 创建一个URL对象，指向选择的文件
 //         audioSrc.value = URL.createObjectURL(file);
 //         const mockData = {
+
+
 //             "code": 200,
 //             "router": "/api/web/speaker_diarization",
 //             "data": {
-//                 "speaker_num": 4,
+//                 "speaker_num": 3,
 //                 "recognition_result": [
 //                     {
-//                         "text": " 很高興能夠和幾位同學一起來討論 互聯網企業如何決勝 全球化新高低這個話題 ",
-//                         "speaker": "SPEAKER_00",
+//                         "text": "谢谢，谢谢大家，谢谢大家，我们竞选总部主任委员黄委员王威震市长，要和我并间族前的六位立委，包括年前委委员。",
 //                         "start_time": 0.03096875,
-//                         "end_time": 10.172843750000002
+//                         "end_time": 10.172843750000002,
+//                         "speaker": [
+//                             {
+//                                 "name": "赖赖",
+//                                 "similarity": 0.34384071826934814,
+//                                 "speaker_id": 0
+//                             }
+//                         ]
 //                     },
 //                     {
-//                         "text": "第二塊其實是遊戲平台 所謂遊戲平台 簡單來說就是商店家社區的模式 ",
-//                         "speaker": "SPEAKER_02",
-//                         "start_time": 10.172843750000002,
-//                         "end_time": 19.977218750000002
-//                     },
-//                     {
-//                         "text": " 我们随着整個业务的托照 会发生跟阿里云有非常紧密的联系 因为剛開始伟光在介绍的时候也讲 阿里云也是阿里巴巴的云 所以这个过程中 一會儿也可以稍微展开跟大家讲下 我们跟云是怎麼一路走來的 ",
-//                         "speaker": "SPEAKER_03",
+//                         "text": "谢谢，谢谢大家，谢谢大家，我们竞选总部主任委员黄委员王威震市长，要和我并间族前的六位立委，包括年前委委员。",
 //                         "start_time": 19.977218750000002,
-//                         "end_time": 35.78909375
+//                         "end_time": 35.78909375,
+//                         "speaker": [
+//                             {
+//                                 "name": "赖赖",
+//                                 "similarity": 0.34384071826934814,
+//                                 "speaker_id": 1
+//                             }
+//                         ]
 //                     },
 //                     {
-//                         "text": " 的确 對互联网公司而言 如果不能复杂人口 我想整个公司就失去了所有的动力 不知道各位怎麼看 我们最大的问题 是不是效率优先 是 否则 是 讲一个最关键的 你們是怎麼克服这些挑战的 ",
-//                         "speaker": "SPEAKER_00",
+//                         "text": "谢谢，谢谢大家，谢谢大家，我们竞选总部主任委员黄委员王威震市长，要和我并间族前的六位立委，包括年前委委员。",
 //                         "start_time": 36.05909375,
-//                         "end_time": 62.384093750000005
+//                         "end_time": 62.384093750000005,
+//                         "speaker": [
+//                             {
+//                                 "name": "赖赖",
+//                                 "similarity": 0.34384071826934814,
+//                                 "speaker_id": 2
+//                             }
+//                         ]
 //                     },
-//                     {
-//                         "text": "因为其实我们最近一直在做海外业务 所以说我们碰到一些问题 可以一起分享出來 給大家一起探讨 ",
-//                         "speaker": "SPEAKER_02",
-//                         "start_time": 64.37534375,
-//                         "end_time": 72.82971875
-//                     },
-//                     {
-//                         "text": "最近一直在做海外業務 所以說我們碰到一些問題 可以一起分享出來 給大家一起探討 ",
-//                         "speaker": "SPEAKER_00",
-//                         "start_time": 65.50596875000001,
-//                         "end_time": 72.66096875000001
-//                     },
-//                     {
-//                         "text": " 我們還是這個觀點 無論妳準備工作得有多充分 學習能力有多強 妳一個中國企業的負責人 其實在出海的時候 整體還是一個強勢做的過程 ",
-//                         "speaker": "SPEAKER_02",
-//                         "start_time": 73.15034375,
-//                         "end_time": 90.22784375
-//                     },
-//                     {
-//                         "text": " 是 ",
-//                         "speaker": "SPEAKER_00",
-//                         "start_time": 81.35159375,
-//                         "end_time": 81.40221875
-//                     },
-//                     {
-//                         "text": " 是 ",
-//                         "speaker": "SPEAKER_03",
-//                         "start_time": 90.22784375,
-//                         "end_time": 90.44721875
-//                     },
-//                     {
-//                         "text": " 不過他也很喜歡妳 ",
-//                         "speaker": "SPEAKER_02",
-//                         "start_time": 90.44721875,
-//                         "end_time": 90.61596875000001
-//                     },
-//                     {
-//                         "text": " 是 ",
-//                         "speaker": "SPEAKER_03",
-//                         "start_time": 90.61596875000001,
-//                         "end_time": 90.70034375
-//                     },
-//                     {
-//                         "text": "後來",
-//                         "speaker": "SPEAKER_02",
-//                         "start_time": 90.70034375,
-//                         "end_time": 90.97034375000001
-//                     },
-//                     {
-//                         "text": "或者脫到新加坡 印尼 越南等等這些地方 每一個地方走過去 都面臨的一個問題是 建戰的效率 怎麼樣能夠快速地把這個戰略建起來 ",
-//                         "speaker": "SPEAKER_03",
-//                         "start_time": 90.97034375000001,
-//                         "end_time": 101.60159375
-//                     },
-//                     {
-//                         "text": " 一方面我們當初剛好從2014年剛好開始 要出去的時候 國內就是三個北上管身 當在海外要同時開服 北美 美東 美西 歐洲 日本 我還記得那個時候 我們在海外如何去建立這種IDC的勘探 建設 基礎設施建設 輸入的部署 都是一個全新的挑戰 ",
-//                         "speaker": "SPEAKER_01",
-//                         "start_time": 101.60159375,
-//                         "end_time": 122.96534375
-//                     }
 //                 ]
 //             }
+
 //         };
 //         if (mockData.code === 200) {
 //             chatItems.value = mockData.data.recognition_result.map((item, index) => ({
 //                 ...item,
-//                 color: speakerColors[item.speaker],
+//                 color: speakerColors[item.speaker[0].speaker_id],
 //                 formatTime: `${(Math.floor(item.start_time / 60)).toString().padStart(2, '0')}:${(item.start_time % 60).toFixed(2).toString().padStart(2, '0')
 //                     }`
 //             }));
 //             filteredChatItems.value = chatItems.value.map(item => ({ ...item }))
 //         }
-//         console.log(chatItems);
+
 //     }
 // };
 </script>
@@ -616,10 +586,9 @@ onMounted(fetchSpeakers);
     margin-bottom: 20px;
 }
 
-.avatar {
+/* .avatar {
     margin-right: 10px;
     background-color: #eee;
-    /* Default background color, will be overridden by dynamic style */
     width: 40px;
     height: 40px;
     display: flex;
@@ -632,6 +601,23 @@ onMounted(fetchSpeakers);
 .avatar img {
     width: 30px;
     height: 30px;
+} */
+.avatar {
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+}
+
+.speaker-number {
+    font-size: 16px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .user-icon {
