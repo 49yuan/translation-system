@@ -57,7 +57,7 @@ export default {
             this.$refs.changePasswordFormRef.validate((valid) => {
                 if (valid) {
                     const { old_password, new_password } = this.changePasswordForm;
-                    axios.put(`/update_password?${old_password}&${new_password}`)
+                    axios.put(`/update_password?old_password=${old_password}&new_password=${new_password}`)
                         .then(response => {
                             if (response.data.code === 200 && response.data.data.result) {
                                 this.$message.success('修改成功');

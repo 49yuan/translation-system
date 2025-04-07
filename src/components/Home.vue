@@ -30,6 +30,9 @@
 
 <script>
 import { ElMessageBox } from 'element-plus';
+import { useTranslationStore } from '@/stores/translation'
+import { useRouter } from 'vue-router'
+
 export default {
     name: 'HomePage',
     data() {
@@ -43,20 +46,44 @@ export default {
         goToChangePassword() {
             this.$router.push('/changep');
         },
-        logout() {
-            ElMessageBox.confirm('确定注销并退出系统吗？', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
-                window.sessionStorage.clear();
-                this.$router.push('/login');
-            }).catch(() => {
-                // 取消操作
-            });
+        async logout() {
+            try {
+                await ElMessageBox.confirm('确定注销并退出系统吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                })
+
+                const translationStore = this.$pinia._s.get('translation')
+                const chatStore = this.$pinia._s.get('chat')
+                const languageStore = this.$pinia._s.get('language')
+
+                if (translationStore) {
+                    translationStore.clearAuth()
+                    translationStore.clearAudioTranslationState()
+                    translationStore.clearVideoTranslationState()
+                }
+
+                if (chatStore && chatStore.resetState) {
+                    chatStore.resetState()
+                }
+
+                if (languageStore && languageStore.resetState) {
+                    languageStore.resetState()
+                }
+
+                window.sessionStorage.clear()
+                this.$router.push('/login')
+            } catch (error) {
+                if (error !== 'cancel') {
+                    console.error('登出失败:', error)
+                } else {
+                    console.log('用户取消登出')
+                }
+            }
         },
         getUsername() {
-            return window.sessionStorage.getItem("username");
+            return window.sessionStorage.getItem('username') || '未知用户'
         }
     }
 }

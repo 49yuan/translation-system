@@ -6,8 +6,10 @@ import 'element-plus/dist/index.css';
 import axios from 'axios';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import './assets/css/global.css';
+import { createPinia } from 'pinia'
 
 const app = createApp(App);
+const pinia = createPinia();
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component);
@@ -21,6 +23,8 @@ axios.interceptors.request.use(config => {
     return config
 });
 
+app.use(pinia)
+app.config.globalProperties.$pinia = pinia
 app.use(ElementPlus);
 app.use(router);
 app.mount('#app');

@@ -33,8 +33,10 @@
 </template>
   
 <script>
-import { ElMessage } from 'element-plus';
-import { login } from '@/api/login';
+import { ElMessage } from 'element-plus'
+import { login } from '@/api/login'
+import { useTranslationStore } from '@/stores/translation'
+import { useRouter } from 'vue-router'
 
 export default {
     name: 'LoginPage',
@@ -47,7 +49,7 @@ export default {
             loginRules: {
                 username: [
                     { required: true, message: '请输入登录名称', trigger: 'blur' },
-                    { min: 3, max: 20, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+                    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
                 ],
                 password: [
                     { required: true, message: '请输入登录密码', trigger: 'blur' },
@@ -60,40 +62,57 @@ export default {
     },
     methods: {
         resetLoginForm() {
-            this.$refs.loginFormRef.resetFields();
+            this.$refs.loginFormRef?.resetFields()
         },
         async handleLogin() {
-            this.$refs.loginFormRef.validate(async (valid) => {
+            try {
+                // 验证表单
+                const valid = await this.$refs.loginFormRef.validate()
                 if (!valid) {
-                    ElMessage.error("验证失败");
-                    return;
+                    ElMessage.error("请正确填写登录信息")
+                    return
                 }
-                try {
-                    const response = await login(this.loginForm.username, this.loginForm.password);
-                    switch (response.code) {
-                        case 200:
-                            window.sessionStorage.setItem("token", response.data.result);
-                            window.sessionStorage.setItem("username", this.loginForm.username);
-                            ElMessage.success("登录成功");
-                            this.$router.push('/home');
-                            break;
-                        case 410:
-                            ElMessage.error("用户不存在");
-                            break;
-                        case 411:
-                            ElMessage.error("密码错误");
-                            break;
-                        default:
-                            ElMessage.error("登录失败，未知错误");
-                            break;
-                    }
-                } catch (error) {
-                    ElMessage.error("登录请求异常");
+
+                this.loading = true
+
+                // 调用登录API
+                const response = await login(this.loginForm.username, this.loginForm.password)
+
+                // 处理响应
+                switch (response.code) {
+                    case 200:
+                        const store = useTranslationStore()
+                        const router = useRouter()
+
+                        // 存储认证信息
+                        store.setAuth(response.data.result, this.loginForm.username)
+                        window.sessionStorage.setItem("token", response.data.result)
+                        window.sessionStorage.setItem("username", this.loginForm.username)
+
+                        ElMessage.success("登录成功")
+                        this.$router.push('/home')
+                        break
+
+                    case 410:
+                        ElMessage.error("用户不存在")
+                        break
+
+                    case 411:
+                        ElMessage.error("密码错误")
+                        break
+
+                    default:
+                        ElMessage.error(response.data?.msg || "登录失败，未知错误")
                 }
-            });
+            } catch (error) {
+                console.error('登录失败:', error)
+                ElMessage.error("登录请求异常，请稍后重试")
+            } finally {
+                this.loading = false
+            }
         }
     }
-};
+}
 </script>
   
 <style lang="less" scoped>

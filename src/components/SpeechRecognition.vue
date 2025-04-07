@@ -1,20 +1,9 @@
 <template>
     <div class="container">
-        <!-- <div class="tab">
-            <button v-for="tab in tabs" :key="tab" :class="{ 'tab-button': true, active: currentTab === tab }"
-                @click="currentTab = tab">
-                {{ tab }}
-            </button>
-        </div> -->
         <el-card class="audio-upload-card">
             <div class="audio-upload-container">
-                <!-- <div v-if="currentTab === '音频识别'" class="content" id="audio"> -->
                 <div class="text_area" v-html="recognitionResult" placeholder="识别结果将显示在这里">
                 </div>
-                <!-- <div class="button1">
-                    <el-button type="primary" @click="startRecording">开始录音</el-button>
-                    <el-button type="success" @click="stopRecording" :disabled="!isRecording">停止录音</el-button>
-                </div> -->
                 <div style="height: 20px;"></div>
                 <div class="audio-control-container">
                     <audio ref="audioPlayer" controls></audio>
@@ -29,7 +18,7 @@
                             </template>
                             <el-button style="margin-left: 10px;" type="primary" class="f-button margin-bottom-1"
                                 :loading="isTranslating" :disabled="isTranslating" @click="hkTozh">
-                                <el-icon>
+                                <el-icon v-if="!isTranslating">
                                     <Connection />
                                 </el-icon>
                                 {{ isTranslating ? '翻译中...' : '中文翻译' }}
@@ -48,11 +37,6 @@
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
-                            <!-- <el-button style="margin-left: 10px;" type="success">导出</el-button> -->
-                            <!-- <el-button style="margin-left: 10px;" type="success" @click="hkToen">英文翻译</el-button> -->
-                            <!-- <div style="margin-top: 15px;">
-                            <el-tag>{{ audioName }}</el-tag>
-                        </div> -->
                         </el-upload>
                     </div>
                 </div>
@@ -60,32 +44,110 @@
         </el-card>
     </div>
 </template>
+
 <script>
 import { audio_recognition_hkTozh } from '@/api/speech_recognition'
 import axios from "axios";
+import { useTranslationStore } from '@/stores/translation'
+import { storeToRefs } from 'pinia'
+
 export default {
     name: 'SpeechRecognition',
+    setup() {
+        const translationStore = useTranslationStore()
+        const { audioTranslation } = storeToRefs(translationStore)
+
+        return {
+            translationStore,
+            audioTranslation
+        }
+    },
     data() {
         return {
-            fileList: [],
-            audioFile: null,
-            audioName: '',
-            recognitionResult: '', // 用于存储识别结果
             isRecording: false,
-            audioSrc: '',
             mediaRecorder: null,
             chunks: [],
-            // currentTab: '音频识别', // 默认显示音频识别界面
-            // tabs: ['音频识别', '视频识别'],
-            // videoFile: null,
-            // videoName: '',
-            // videoSrc: '',
-            // subtitles: [],
-            // videoFileList: [],
-            highlightedTexts: [], // 用于存储高亮文本和时间戳
-            isTranslating: false, // 控制翻译按钮的状态
-            recognitionData: '',
+            isTranslating: false,
         };
+    },
+    computed: {
+        fileList: {
+            get() {
+                return this.audioTranslation.fileList
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    fileList: value
+                })
+            }
+        },
+        audioFile: {
+            get() {
+                return this.audioTranslation.audioFile
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    audioFile: value
+                })
+            }
+        },
+        audioName: {
+            get() {
+                return this.audioTranslation.audioName
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    audioName: value
+                })
+            }
+        },
+        recognitionResult: {
+            get() {
+                return this.audioTranslation.recognitionResult
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    recognitionResult: value
+                })
+            }
+        },
+        highlightedTexts: {
+            get() {
+                return this.audioTranslation.highlightedTexts
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    highlightedTexts: value
+                })
+            }
+        },
+        recognitionData: {
+            get() {
+                return this.audioTranslation.recognitionData
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    recognitionData: value
+                })
+            }
+        },
+        audioSrc: {
+            get() {
+                return this.audioTranslation.audioSrc
+            },
+            set(value) {
+                this.translationStore.saveAudioTranslationState({
+                    ...this.audioTranslation,
+                    audioSrc: value
+                })
+            }
+        }
     },
     methods: {
         startRecording() {
@@ -100,9 +162,7 @@ export default {
                         }
                     };
                     this.mediaRecorder.onstop = () => {
-                        // 创建 Blob 对象
                         const blob = new Blob(this.chunks, { type: 'audio/wav' });
-                        // 将 Blob 转换为 File 对象
                         this.audioFile = new File([blob], '录音.wav', { type: 'audio/wav' });
                         this.audioName = '录音.wav';
                         this.audioSrc = URL.createObjectURL(this.audioFile);
@@ -124,20 +184,16 @@ export default {
             if (!isAudio) {
                 this.$message.error('请上传音频文件!');
             }
-            // const isLt10M = file.size / 1024 / 1024 < 10;
-            // if (!isLt10M) {
-            //     this.$message.error('上传文件大小不能超过 10MB!');
-            // }
-            // return isAudio && isLt10M;
             return isAudio;
         },
         handleChange(file, fileList) {
-            this.audioFile = file.raw; // 假设一次只上传一个文件
+            this.audioFile = file.raw;
             this.audioName = file.name;
             this.fileList = [file];
             if (this.audioFile) {
                 const audioPlayer = this.$refs.audioPlayer;
-                audioPlayer.src = URL.createObjectURL(this.audioFile);
+                this.audioSrc = URL.createObjectURL(this.audioFile);
+                audioPlayer.src = this.audioSrc;
             }
         },
         handleSuccess(response, file, fileList) {
@@ -147,28 +203,11 @@ export default {
         handleError(error, file, fileList) {
             this.$message.error('音频上传失败');
         },
-        // 原本的音频翻译方法
-        // hkTozh() {
-        //     if (!this.audioFile || !(this.audioFile instanceof File)) {
-        //         this.$message.error('请先选择音频文件');
-        //         return;
-        //     }
-        //     console.log(this.audioFile)
-        //     audio_recognition_hkTozh(this.audioFile)
-        //         .then(res => {
-        //             console.log(res.data)
-        //             this.recognitionResult = res.data.data['result']
-        //         }).catch(error => {
-        //             console.error('音频识别失败:', error);
-        //             this.$message.error('音频识别失败');
-        //         });
-        // },
         async hkTozh() {
             if (!this.audioFile || !(this.audioFile instanceof File)) {
                 this.$message.error('请先选择音频文件');
                 return;
             }
-            // 开始翻译，设置按钮状态
             this.isTranslating = true;
 
             const formData = new FormData();
@@ -197,7 +236,6 @@ export default {
                 console.error('音频识别失败:', error);
                 this.$message.error('音频识别失败');
             } finally {
-                // 翻译完成，恢复按钮状态
                 this.isTranslating = false;
             }
         },
@@ -224,8 +262,6 @@ export default {
                 });
             });
         },
-
-        //导出
         exportFile(format) {
             if (!this.recognitionData) {
                 this.$message.error('请先进行音频识别');
@@ -241,13 +277,13 @@ export default {
                 this.$message.error('无效的导出格式');
                 return;
             }
-            // 使用用户上传的音频文件名作为基础文件名
-            const baseFilename = this.audioName.replace(/\.[^/.]+$/, ""); // 去掉文件扩展名
-            const filename = `${baseFilename}.${format === 'excel' ? 'xlsx' : 'docx'}`; // 根据格式添加扩展名
+
+            const baseFilename = this.audioName.replace(/\.[^/.]+$/, "");
+            const filename = `${baseFilename}.${format === 'excel' ? 'xlsx' : 'docx'}`;
             url += `?filename=${filename}`;
+
             let requestData;
             if (format === 'excel') {
-                // Excel 导出请求数据
                 requestData = {
                     speaker_num: this.recognitionData.speaker_num,
                     recognition_result: this.recognitionData.recognition_result.map(item => ({
@@ -264,6 +300,7 @@ export default {
             } else if (format === 'word') {
                 requestData = this.recognitionData.recognition_result.map(item => item.text).join('\n');
             }
+
             axios.post(url, requestData, {
                 headers: {
                     'Content-Type': 'application/json'
@@ -271,12 +308,9 @@ export default {
                 responseType: 'blob'
             })
                 .then(response => {
-                    let mimeType = '';
-                    if (format === 'excel') {
-                        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-                    } else if (format === 'word') {
-                        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                    }
+                    let mimeType = format === 'excel'
+                        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
                     const blob = new Blob([response.data], { type: mimeType });
                     const downloadUrl = window.URL.createObjectURL(blob);
@@ -284,11 +318,10 @@ export default {
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.download = filename;
-                    //link.setAttribute('download', `output.${format}`); // 设置文件名
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    window.URL.revokeObjectURL(downloadUrl); // 释放对象 URL
+                    window.URL.revokeObjectURL(downloadUrl);
                     this.$message.success(`导出为 ${format} 成功`);
                 })
                 .catch(error => {
@@ -299,99 +332,27 @@ export default {
         handleExportCommand(command) {
             this.exportFile(command);
         },
-        // hkToen() {
-        //     if (!this.audioFile) {
-        //         this.$message.error('请先选择音频文件');
-        //         return;
-        //     }
-        //     audio_recognition_hkToen(this.audioFile)
-        //         .then(res => {
-        //             console.log(res.data)
-        //             this.recognitionResult = res.data['result']
-        //         })
-        // },
-        // 已转移
-        // handleVideoChange(file, fileList) {
-        //     this.videoFile = file.raw;
-        //     this.videoName = file.name;
-        //     this.videoFileList = [file];
-        //     if (this.videoFile) {
-        //         const videoPlayer = this.$refs.videoPlayer;
-        //         videoPlayer.src = URL.createObjectURL(this.videoFile);
-        //     }
-        //     //这部分是因为禁用了auto-upload,后端启用时或许可以解除
-        //     this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
-        //     console.log(this.subtitles);
-        // },
-        // beforeVideoUpload(file) {
-        //     const isVideo = file.type.startsWith('video/');
-        //     if (!isVideo) {
-        //         this.$message.error('请上传视频文件!');
-        //     }
-        //     const isLt100M = file.size / 1024 / 1024 < 100;
-        //     if (!isLt100M) {
-        //         this.$message.error('上传文件大小不能超过 100MB!');
-        //     }
-        //     return isVideo && isLt100M;
-        // },
-        // handleVideoSuccess(response, file, fileList) {
-        //     this.$message.success('视频上传成功');
-        //     this.fetchSubtitles(); // 假设后端接口上传成功后返回字幕信息
-        //     console.log(this.subtitles);
-        // },
-        // handleVideoError(error, file, fileList) {
-        //     this.$message.error('视频上传失败');
-        // },
-        // fetchSubtitles() {
-        //     this.subtitles = [
-        //         {
-        //             text: "请点击翻译字幕按钮生成中文翻译",
-        //             start_time: 0,
-        //             end_time: 5,
-        //             display: 'display'
-        //         },
-        //         {
-        //             text: "出现这个代表后端翻译api还没正常获取",
-        //             start_time: 5,
-        //             end_time: 10,
-        //             display: 'none'
-        //         },
-        //         // ... 其他字幕数据
-        //     ];
-        //     // 监听视频播放事件，显示对应字幕
-        //     const videoPlayer = this.$refs.videoPlayer;
-        //     videoPlayer.addEventListener('timeupdate', this.syncSubtitles);
-        // },
-        // syncSubtitles() {
-        //     const currentTime = this.$refs.videoPlayer.currentTime;
-        //     this.subtitles = this.subtitles.map((subtitle, index) => {
-        //         if (currentTime >= subtitle.start_time && currentTime <= subtitle.end_time) {
-        //             return { ...subtitle, display: 'block' };
-        //         } else {
-        //             return { ...subtitle, display: 'none' };
-        //         }
-        //     });
-        // },
-        // translateSubtitles() {
-        //     // 调用后端接口翻译字幕
-        //     // 假设后端接口返回翻译后的字幕信息
-        //     // 更新 this.subtitles
-        // },
-        // beforeDestroy() {
-        //     // 组件销毁前移除事件监听
-        //     const videoPlayer = this.$refs.videoPlayer;
-        //     videoPlayer.removeEventListener('timeupdate', this.syncSubtitles);
-        // },
     },
     watch: {
         fileList(newVal) {
-            // 监听文件列表变化，这里不需要做任何操作
+            // 监听文件列表变化
         },
     },
     mounted() {
+        // 恢复音频播放器状态
+        if (this.audioSrc && this.$refs.audioPlayer) {
+            this.$refs.audioPlayer.src = this.audioSrc;
+        }
+
         this.$nextTick(() => {
             this.highlightText();
         });
+    },
+    // 组件激活时恢复状态
+    activated() {
+        if (this.audioSrc && this.$refs.audioPlayer) {
+            this.$refs.audioPlayer.src = this.audioSrc;
+        }
     }
 };
 </script>

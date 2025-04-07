@@ -6,28 +6,48 @@ import DialoguePage from './components/DialoguePage';
 import ChangePassword from './components/ChangePassword';
 import VideoRecognition from './components/VideoRecognition';
 import LanguagePage from './components/LanguagePage';
-import RecordPage from './components/Record.vue';
-import MiandianPage from './components/TranslationModule.vue';
-
+// import RecordPage from './components/Record.vue';
+// import MiandianPage from './components/TranslationModule.vue';
+import { useTranslationStore } from '@/stores/translation';
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: LoginPage },
-    { path: '/changep', component: ChangePassword },
+    { path: '/changep', component: ChangePassword, meta: { requiresAuth: true } },
     {
         path: '/home', component: HomePage,
         redirect: '/speech_recognition',
         children: [
             {
                 path: '/speech_recognition', component: SpeechRecognition,
+                meta: {
+                    keepAlive: true,
+                    cacheKey: 'audio'
+                }
             },
             {
                 path: '/speech_recognition/video',
-                component: VideoRecognition
+                component: VideoRecognition,
+                meta: {
+                    keepAlive: true,
+                    cacheKey: 'video'
+                }
             },
-            { path: '/dialogue', component: DialoguePage },
-            { path: '/language_recognition', component: LanguagePage },
-            { path: '/record', component: RecordPage },
-            { path: '/translate', component: MiandianPage }
+            {
+                path: '/dialogue', component: DialoguePage,
+                meta: {
+                    keepAlive: true,
+                    cacheKey: 'dialogue'
+                }
+            },
+            {
+                path: '/language_recognition', component: LanguagePage,
+                meta: {
+                    keepAlive: true,
+                    cacheKey: 'language'
+                }
+            },
+            // { path: '/record', component: RecordPage },
+            // { path: '/translate', component: MiandianPage }
         ]
     }
 ];
@@ -37,11 +57,24 @@ const router = createRouter({
     routes
 });
 
-// router.beforeEach((to, from, next) => {
-//     if (to.path === '/login') return next();
-//     const tokenStr = window.sessionStorage.getItem('token');
-//     if (!tokenStr) return next('/login');
-//     next();
-// });
+router.beforeEach((to, from, next) => {
+    const translationStore = useTranslationStore()
+    if (to.path !== '/login' && !translationStore.auth.token) {
+        // 未登录且不是前往登录页，重置所有状态
+        translationStore.clearAuth()
+        translationStore.clearAudioTranslationState()
+        translationStore.clearVideoTranslationState()
+
+        const chatStore = useChatStore()
+        if (chatStore.resetState) chatStore.resetState()
+
+        const languageStore = useLanguageStore()
+        if (languageStore.resetState) languageStore.resetState()
+
+        next('/login')
+    } else {
+        next()
+    }
+});
 
 export default router;
