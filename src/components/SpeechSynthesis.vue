@@ -1,215 +1,165 @@
 <template>
-    <NavigationBar/>
-    <div class="container">
-      <el-row>
-        <el-col :span="24"><div class="grid-content ep-bg-purple-dark" /></el-col>
-      </el-row>
-      <el-row :gutter="20">
-        <el-col :span="2" :offset="4">
-          <el-row>
-            <el-button :type="isPrimary(1)" size="large" @click="selectButton(1)">小芳</el-button>
-          </el-row>
-        </el-col>
-        <el-col :span="10" :offset="2">
-          <div class="grid-content ep-bg-purple">
-            <el-card class="audio-upload-card">
-              <div class="audio-upload-container">
-                <el-input
-                  type="textarea"
-                  :rows="10"
-                  v-model="synthesis_text"
-                  placeholder="请输入待合成的文字"
-                >
-                </el-input>
-                <el-button type="primary" @click="synthesizeVoice" style="margin-top: 20px;">语音合成</el-button>
-                <el-button style="margin-left: 15px; margin-top: 20px;" type="success" @click="audiodownload">下载音频文件</el-button>
-              </div>
-              <audio ref="audioPlayer" controls></audio>
-            </el-card>
+  <NavigationBar />
+
+  <!-- ===== 主体区域 ===== -->
+  <div class="main-area">
+    <!-- ---------- 声源面板：两列 ---------- -->
+    <aside class="speaker-panel">
+      <div class="speaker-grid">
+        <!-- 女声列 -->
+        <div class="gender-col">
+          <div class="speaker-title">女声</div>
+          <div
+            v-for="sp in femaleSpeakers"
+            :key="sp.id"
+            class="speaker-row"
+            @click="selectButton(sp.id)"
+          >
+            <el-button
+              :type="isPrimary(sp.id)"
+              size="large"
+              class="speaker-button"
+            >
+              {{ sp.name }}
+            </el-button>
           </div>
-        </el-col>
-      </el-row>
-      
-    </div>
+        </div>
+
+        <!-- 男声列 -->
+        <div class="gender-col">
+          <div class="speaker-title">男声</div>
+          <div
+            v-for="sp in maleSpeakers"
+            :key="sp.id"
+            class="speaker-row"
+            @click="selectButton(sp.id)"
+          >
+            <el-button
+              :type="isPrimary(sp.id)"
+              size="large"
+              class="speaker-button"
+            >
+              {{ sp.name }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ---------- 合成面板 ---------- -->
+    <section class="synthesis-panel">
+      <el-card>
+        <div class="audio-upload-container">
+          <el-input
+            type="textarea"
+            :rows="10"
+            v-model="synthesis_text"
+            placeholder="请输入待合成的文字"
+          />
+          <el-button
+            type="primary"
+            style="margin-top:20px"
+            @click="synthesizeVoice"
+          >语音合成</el-button>
+          <el-button
+            type="success"
+            style="margin-top:20px;margin-left:15px"
+            @click="audiodownload"
+          >下载音频文件</el-button>
+        </div>
+        <audio ref="audioPlayer" controls />
+      </el-card>
+    </section>
+  </div>
 </template>
-  
-  <script>
-  import { audio_synthesis, downloadAudioFile } from '@/api/speech_synthesis'
-  
-  export default {
-    data() {
-      return {
-        fileList: [],
-        audioFile: null,
-        audioName: '',
-        synthesis_text: '', // 用于存储识别结果
-        downloadPath: '111',
-        audio_id: "",
-        selectedIndex: 1 // 默认选中第一个按钮
-      };
+
+<script>
+import { audio_synthesis, downloadAudioFile } from '@/api/speech_synthesis'
+
+export default {
+  data () {
+    return {
+      synthesis_text: '',
+      selectedIndex : 1,   // 默认男声 1
+      audio_id      : '',
+      speakers: [
+        { id: 1,  name: '小明', gender: 'male'   },
+        { id: 2,  name: '阿强', gender: 'male'   },
+        { id: 3,  name: '小华', gender: 'male'   },
+        { id: 4,  name: '小杰', gender: 'male'   },
+        { id: 5,  name: '小刚', gender: 'male'   },
+        { id: 6,  name: '小芳', gender: 'female' },
+        { id: 7,  name: '小丽', gender: 'female' },
+        { id: 8,  name: '小红', gender: 'female' },
+        { id: 9,  name: '小琴', gender: 'female' },
+        { id: 10, name: '小梅', gender: 'female' }
+      ]
+    }
+  },
+
+  computed: {
+    maleSpeakers   () { return this.speakers.filter(s => s.gender === 'male') },
+    femaleSpeakers () { return this.speakers.filter(s => s.gender === 'female') }
+  },
+
+  methods: {
+    /* ---------- 选中 / 高亮 ---------- */
+    selectButton (id) { this.selectedIndex = id },
+    isPrimary   (id) { return this.selectedIndex === id ? 'primary' : 'default' },
+
+    /* ---------- 下载音频 ---------- */
+    async audiodownload () {
+      if (!this.audio_id) return this.$message.warning('暂无可下载文件')
+      try {
+        const res = await downloadAudioFile(this.audio_id)
+        const url = URL.createObjectURL(res.data)
+        const a   = Object.assign(document.createElement('a'), {
+          href: url, download: this.audio_id + '.wav'
+        })
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        this.$message.success('下载成功')
+      } catch {
+        this.$message.error('下载失败')
+      }
     },
-    methods: {
-      selectButton(index) {
-        this.selectedIndex = index; // 更新选中的按钮索引
-      },
-      isPrimary(index) {
-        return this.selectedIndex === index ? 'primary' : 'default'; // 判断当前按钮是否应该为 primary 类型
-      },
-      beforeUpload(file) {
-        const isAudio = file.type.startsWith('audio/');
-        if (!isAudio) {
-          this.$message.error('请上传音频文件!');
-        }
-        const isLt10M = file.size / 1024 / 1024 < 10;
-        if (!isLt10M) {
-          this.$message.error('上传文件大小不能超过 10MB!');
-        }
-        return isAudio && isLt10M;
-      },
-      handleChange(file, fileList) {
-        this.audioFile = file.raw; // 假设一次只上传一个文件
-        this.audioName = file.name;
-        this.fileList = [file];
-        if (this.audioFile) {
-          const audioPlayer = this.$refs.audioPlayer;
-          audioPlayer.src = URL.createObjectURL(this.audioFile);
-        }
-      },
-      handleSuccess(response, file, fileList) {
-        this.$message.success('音频上传成功');
-        this.audio_id = response.data.result;
-      },
-      handleError(error, file, fileList) {
-        this.$message.error('音频上传失败');
-      },
-      audiodownload() {
-        if (!this.downloadPath) {
-          this.$message.error('没有可下载的音频文件');
-          return;
-        }
-        
-        downloadAudioFile(this.audio_id).then((response) => {
-            console.log(response)
-            // 创建一个可下载的 Blob URL
-            const blob = response['data'];
-            console.log('hahahah')
-            console.log(blob)
-            const downloadUrl = URL.createObjectURL(blob);
 
-            // 创建一个下载链接
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = this.audio_id + '.wav'; // 使用提供的文件名
+    /* ---------- 合成并播放 ---------- */
+    async synthesizeVoice () {
+      const text = this.synthesis_text.trim()
+      if (!text) return this.$message.warning('请输入文本')
 
-            // 触发下载
-            if (typeof link.download === 'undefined') {
-              // Fallback for browsers that do not support 'download' attribute
-              setTimeout(() => {
-                link.click();
-              }, 100);
-            } else {
-              // For modern browsers
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }
+      try {
+        /* ★ 传两个独立参数：text, voice_id ★ */
+        const { data } = await audio_synthesis(text, this.selectedIndex)
+        this.audio_id  = data.data.result
+        this.$message.success('合成成功')
 
-            // 重置downloadUrl以避免内存泄漏
-            URL.revokeObjectURL(downloadUrl);
-            this.$message.success('音频下载成功');
-          }).catch(error => {
-            this.$message.error('下载音频失败');
-            throw error
-            
-        });
-      },
-      synthesizeVoice() {
-        const text = this.synthesis_text;
+        const res = await downloadAudioFile(this.audio_id)
+        const url = URL.createObjectURL(res.data)
+        const p   = this.$refs.audioPlayer
+        p.src     = url
+        p.onended = () => URL.revokeObjectURL(url)
 
-        console.log("text:", text)
+      } catch (err) {
+        console.error('后端 detail →', err.response?.data)
+        this.$message.error('语音合成失败')
+      }
+    }
+  }
+}
+</script>
 
-        audio_synthesis(text).then(response => {
-
-          console.log(response)
-
-          this.audio_id = response['data']['data']['result']
-
-          this.$message.success('音频合成成功');
-
-          // 通过 ref 获取 audio 元素
-          const audioPlayer = this.$refs.audioPlayer;
-          downloadAudioFile(this.audio_id).then((response) => {
-            console.log(response)
-            // 创建一个可下载的 Blob URL
-            const blob = response['data'];
-            const downloadUrl = URL.createObjectURL(blob);
-
-            // 设置 audio 元素的 src 属性为下载 URL
-            audioPlayer.src = downloadUrl;
-
-            // 等待音频元数据加载完成
-            audioPlayer.onloadedmetadata = () => {
-              this.$message.success('音频下载成功');
-            };
-
-            // 重置downloadUrl以避免内存泄漏
-            audioPlayer.onended = () => {
-              URL.revokeObjectURL(downloadUrl);
-            };
-          }).catch(error => {
-            this.$message.error('下载音频失败');
-            throw error
-        });
-        }).catch(error => {
-          this.$message.error('语音合成失败');
-          console.error('Error synthesizing voice:', error);
-        });
-      },
-    },
-    watch: {
-      fileList(newVal) {
-        // 监听文件列表变化，这里不需要做任何操作
-      },
-    },
-  };
-  </script>
-    
 <style scoped>
-  /* .container {
-    position: relative;
-    height: 100vh;
-  } */
-
-  .audio-upload-container {
-    padding: 20px;
-  }
-  .button {
-    margin-top: 30px;
-  }
-  .speaker-buttons {
-    display: flex;
-    flex-direction: column; /* 垂直排列按钮 */
-    margin-left: 150px; /* 使按钮组靠右 */
-    
-  }
-  .speaker-button {
-    width: 250px; /* 固定宽度 */
-    height: 40px; /* 固定高度 */
-    line-height: 40px; /* 确保文本垂直居中 */
-    text-align: center; /* 文本水平居中 */
-    margin-top: 15px; /* 将底部外边距改为顶部外边距 */
-  }
-  .el-row {
-    margin-bottom: 20px;
-  }
-  .el-row:last-child {
-    margin-bottom: 0;
-  }
-  .el-col {
-    border-radius: 4px;
-  }
-  .grid-content {
-    border-radius: 4px;
-    min-height: 36px;
-  }
+.main-area       { display:flex; align-items:flex-start; }
+.speaker-panel   { width:360px; margin-left:80px; margin-right:40px; }
+.speaker-grid    { display:flex; gap:20px; }
+.gender-col      { flex:1; }
+.speaker-title   { font-weight:600; font-size:16px; margin-bottom:12px; }
+.speaker-row     { margin-bottom:12px; }
+.speaker-button  { width:100%; }
+.synthesis-panel { flex:1; max-width:900px; margin-left:40px; }
+.audio-upload-container { padding:20px; }
 </style>

@@ -1,10 +1,12 @@
 import axios from "axios";
 
 // 定义一个函数用于上传音频并进行识别
-export function audio_synthesis(text) {
+export function audio_synthesis(text,voice_id) {
     // 发送 GET 请求，包含音频文件
     return axios.get('/synthesis_minnan', {
-      params: {'text': text}
+      params: {'text': text,
+        'voice_id':voice_id
+      }
     })
 }
 
