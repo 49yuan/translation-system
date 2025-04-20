@@ -83,7 +83,7 @@ export default {
       selectedIndex : 1,   // 默认男声 1
       audio_id      : '',
       speakers: [
-        { id: 1,  name: '小明', gender: 'male'   },
+        { id: 1,  name: '赖', gender: 'male'   },
         { id: 2,  name: '阿强', gender: 'male'   },
         { id: 3,  name: '小华', gender: 'male'   },
         { id: 4,  name: '小杰', gender: 'male'   },
