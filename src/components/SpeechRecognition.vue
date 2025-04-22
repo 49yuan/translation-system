@@ -7,7 +7,12 @@
                 <div style="height: 20px;"></div>
                 <div class="audio-control-container">
                     <audio ref="audioPlayer" controls></audio>
+                    
                     <div class="button-group">
+                        <el-select v-model="lang" placeholder="选择语言" style="width: 100px; margin-left: 10px;">
+                        <el-option label="中文" value="zh" />
+                        <el-option label="英文" value="en" />
+                    </el-select>
                         <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
                             :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
                             :on-change="handleChange" class="button">
@@ -64,6 +69,7 @@ export default {
     },
     data() {
         return {
+            lang:'zh',
             isRecording: false,
             mediaRecorder: null,
             chunks: [],
@@ -212,6 +218,7 @@ export default {
 
             const formData = new FormData();
             formData.append('file', this.audioFile);
+            formData.append('lang', this.lang || 'zh');
 
             try {
                 const response = await axios.post('/speaker_diarization', formData, {

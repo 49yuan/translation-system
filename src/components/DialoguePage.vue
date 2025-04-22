@@ -85,6 +85,11 @@
         <div class="menu">
             <audio ref="audioPlayer" :src="audioState.audioSrc" @loadedmetadata="setAudioDuration"
                 @timeupdate="onTimeUpdate" controls></audio>
+            <el-select v-model="lang" placeholder="语言" style="width: 100px; margin-left: 10px;">
+                    <el-option label="中文" value="zh" />
+                    <el-option label="英文" value="en" />
+            </el-select>
+
             <el-button type="primary" class="f-button" @click="triggerFileInput" :loading="audioState.isTranslating"
                 :disabled="audioState.isTranslating">
                 <el-icon v-if="!isTranslating">
@@ -145,6 +150,7 @@ const audioPlayer = ref(null)
 const fileInput = ref(null)
 const addVoiceInput = ref(null)
 const speakerInput = ref(null)
+const lang = ref('zh') // 默认中文
 
 // 生成随机颜色
 const generateRandomColor = () => {
@@ -169,49 +175,55 @@ const handleFileUpload = async (event) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    // 获取选中的说话人 id
+    // 添加说话人 ID（body）
     const selectedSpeakerIds = Object.keys(speakerState.value.selectedSpeakers)
         .filter(name => speakerState.value.selectedSpeakers[name])
-        .map(name => speakerState.value.speakers.find(speaker => speaker.name === name)?.id)
+        .map(name => speakerState.value.speakers.find(s => s.name === name)?.id)
 
-    // 如果有选中的说话人，添加到 formData
-    if (selectedSpeakerIds.length > 0) {
-        selectedSpeakerIds.forEach(id => formData.append('speaker_ids', id))
-    }
+    selectedSpeakerIds.forEach(id => {
+        if (id) formData.append('speaker_ids', id)
+    })
+
+    // 传入 URL 查询参数
+    const queryParams = new URLSearchParams({
+        language: lang.value || 'zh',
+        // 可选 start_time 和 end_time，以下为示例，可根据你界面上的滑块组件绑定动态值
+        //start_time: '0',
+        //end_time: '-1'
+    })
 
     try {
-        const response = await axios.post('/speaker_diarization', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+        const response = await axios.post(`/speaker_diarization?${queryParams.toString()}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
         })
 
         if (response.data.code === 200) {
-            // 如果 speaker_num 超过 speakerColors，动态生成随机颜色
-            const totalSpeakers = response.data.data.speaker_num
-            for (let i = 0; i < totalSpeakers; i++) {
-                if (!speakerState.value.speakerColors[i]) {
-                    speakerState.value.speakerColors[i] = generateRandomColor()
-                }
+        const totalSpeakers = response.data.data.speaker_num
+        for (let i = 0; i < totalSpeakers; i++) {
+            if (!speakerState.value.speakerColors[i]) {
+            speakerState.value.speakerColors[i] = generateRandomColor()
             }
+        }
 
-            const chatItems = response.data.data.recognition_result.map((item, index) => {
-                const speaker = item.speaker[0]
-                return {
-                    ...item,
-                    color: speakerState.value.speakerColors[speaker.speaker_id],
-                    formatTime: `${Math.floor(item.start_time / 60).toString().padStart(2, '0')}:${(item.start_time % 60).toFixed(2).toString().padStart(2, '0')}`,
-                    speaker: speaker
-                }
-            })
+        const chatItems = response.data.data.recognition_result.map((item) => {
+            const speaker = item.speaker[0]
+            return {
+            ...item,
+            color: speakerState.value.speakerColors[speaker.speaker_id],
+            formatTime: `${Math.floor(item.start_time / 60).toString().padStart(2, '0')}:${(item.start_time % 60).toFixed(2).toString().padStart(2, '0')}`,
+            speaker
+            }
+        })
 
-            chatStore.updateAudioState({
-                audioSrc: URL.createObjectURL(file),
-                recognitionData: response.data.data
-            })
+        chatStore.updateAudioState({
+            audioSrc: URL.createObjectURL(file),
+            recognitionData: response.data.data
+        })
 
-            chatStore.updateChatState({
-                chatItems,
-                filteredChatItems: [...chatItems]
-            })
+        chatStore.updateChatState({
+            chatItems,
+            filteredChatItems: [...chatItems]
+        })
         }
     } catch (error) {
         console.error('Failed to fetch data:', error)
@@ -551,6 +563,11 @@ const onActivated = () => {
     width: 30px;
     height: 30px;
 } */
+.menu .el-select {
+  margin-top: 6px;
+  height: 36px;
+}
+
 .avatar {
     margin-right: 10px;
     width: 40px;
