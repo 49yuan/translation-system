@@ -161,7 +161,7 @@
   
         await this.ffmpeg.writeFile("input.mp4", await fetchFile(prefile));
         const originName = prefile?.name || 'temp_video.mp4';
-        await this.ffmpeg.exec(['-ss', this.formatTime(start), '-i', 'input.mp4', '-to', this.formatTime(end), '-vn', '-c:a', 'pcm_s16le', 'output.wav']);
+        await this.ffmpeg.exec(['-ss', start.toString(), '-i', 'input.mp4', '-to', end.toString(), '-vn', '-c:a', 'pcm_s16le', 'output.wav']);
         const data = await this.ffmpeg.readFile("output.wav");
         return { data, name: originName.replace(/\.[^.]+$/, '_split.wav') };
       },
