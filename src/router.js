@@ -6,9 +6,6 @@ import DialoguePage from './components/DialoguePage';
 import ChangePassword from './components/ChangePassword';
 import VideoRecognition from './components/VideoRecognition';
 import LanguagePage from './components/LanguagePage';
-import SpeechSynthesis from './components/SpeechSynthesis.vue'
-// import RecordPage from './components/Record.vue';
-// import MiandianPage from './components/TranslationModule.vue';
 import { useTranslationStore } from '@/stores/translation';
 const routes = [
     { path: '/', redirect: '/login' },
@@ -45,13 +42,6 @@ const routes = [
                 meta: {
                     keepAlive: true,
                     cacheKey: 'language'
-                }
-            },
-            {
-                path: '/speech_synthesis', component: SpeechSynthesis,
-                meta: {
-                    keepAlive: true,
-                    cacheKey: 'synthesis'
                 }
             }
             // { path: '/record', component: RecordPage },

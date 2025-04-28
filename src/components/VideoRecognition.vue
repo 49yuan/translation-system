@@ -154,7 +154,7 @@
       async extractAudio(start, end, prefile) {
         if (!this.ffmpeg) {
           this.ffmpeg = new FFmpeg();
-          await this.ffmpeg.load({ coreURL: "/plugin/ffmpeg-core.js", wasmURL: "/plugin/ffmpeg-core.wasm" });
+          await this.ffmpeg.load({ coreURL: "./plugin/ffmpeg-core.js", wasmURL: "./plugin/ffmpeg-core.wasm" });
         }
         try { await this.ffmpeg.unlink("input.mp4") } catch (e) {}
         try { await this.ffmpeg.unlink("output.wav") } catch (e) {}

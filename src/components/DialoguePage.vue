@@ -10,7 +10,7 @@
         </div>
 
         <!-- 说话人识别 -->
-        <el-card class="people">
+        <!-- <el-card class="people">
             <h4>说话人识别</h4>
             <div style="height:300px;width: 220px;">
                 <el-scrollbar style="height: 100%" class="speaker-list-container">
@@ -39,7 +39,7 @@
                     </el-icon>创建说话人
                 </el-button>
             </div>
-        </el-card>
+        </el-card> -->
 
         <!-- 添加语音数据的对话框 -->
         <div v-if="dialogState.addVoiceDialogVisible" class="confirm-dialog">
