@@ -1,6 +1,6 @@
 <template>
     <div class="login">
-        <h3 class="title">智影动力闽南语翻译演示系统</h3>
+        <h3 class="title">智影动力闽南语合成演示系统</h3>
         <div class="login_container">
             <div class="login_box">
                 <div class="avatar_box">
@@ -25,10 +25,10 @@
             </div>
         </div>
         <!--  底部  -->
-        <div class="el-login-footer">
+        <!-- <div class="el-login-footer">
             <span>Copyright © 智影动力 All Rights Reserved.</span><br>
             <span>备案号：</span><span><a href="https://beian.miit.gov.cn/" target="_blank">蜀ICP备2021026882号-1号</a></span>
-        </div>
+        </div> -->
     </div>
 </template>
   
@@ -43,7 +43,7 @@ export default {
     data() {
         return {
             loginForm: {
-                username: 'admin@qq.com',
+                username: 'admin@bt.ga',
                 password: '123123'
             },
             loginRules: {

@@ -1,14 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import LoginPage from './components/Login.vue';
 import HomePage from './components/Home.vue';
-import SpeechRecognition from './components/SpeechRecognition';
-import DialoguePage from './components/DialoguePage';
 import ChangePassword from './components/ChangePassword';
-import VideoRecognition from './components/VideoRecognition';
-import LanguagePage from './components/LanguagePage';
 import SpeechSynthesis from './components/SpeechSynthesis.vue'
-// import RecordPage from './components/Record.vue';
-// import MiandianPage from './components/TranslationModule.vue';
 import { useTranslationStore } from '@/stores/translation';
 const routes = [
     { path: '/', redirect: '/login' },
@@ -16,37 +10,8 @@ const routes = [
     { path: '/changep', component: ChangePassword, meta: { requiresAuth: true } },
     {
         path: '/home', component: HomePage,
-        redirect: '/speech_recognition',
+        redirect: '/speech_synthesis',
         children: [
-            {
-                path: '/speech_recognition', component: SpeechRecognition,
-                meta: {
-                    keepAlive: true,
-                    cacheKey: 'audio'
-                }
-            },
-            {
-                path: '/speech_recognition/video',
-                component: VideoRecognition,
-                meta: {
-                    keepAlive: true,
-                    cacheKey: 'video'
-                }
-            },
-            {
-                path: '/dialogue', component: DialoguePage,
-                meta: {
-                    keepAlive: true,
-                    cacheKey: 'dialogue'
-                }
-            },
-            {
-                path: '/language_recognition', component: LanguagePage,
-                meta: {
-                    keepAlive: true,
-                    cacheKey: 'language'
-                }
-            },
             {
                 path: '/speech_synthesis', component: SpeechSynthesis,
                 meta: {
