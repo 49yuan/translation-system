@@ -1,6 +1,6 @@
 <template>
     <div class="login">
-        <h3 class="title">智影动力缅甸语翻译演示系统</h3>
+        <h3 class="title">智影动力闽南语翻译演示系统</h3>
         <div class="login_container">
             <div class="login_box">
                 <div class="avatar_box">
