@@ -55,7 +55,7 @@
 import { ref } from 'vue'
 import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
-import axios from 'axios'
+import axios from '@/api/axios'
 import { ElMessage } from 'element-plus';
 
 const languageStore = useLanguageStore()
@@ -105,7 +105,7 @@ const isminnan = async () => {
     })
 
     try {
-        const response = await axios.post('/lid/exist_minnan', formData, {
+        const response = await axios.post('/web/lid/exist_minnan', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
 

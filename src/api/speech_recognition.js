@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from '@/api/axios';
 
 export function audio_recognition_hkTozh(audioFile) {
   if (!(audioFile instanceof File)) {
@@ -6,7 +6,7 @@ export function audio_recognition_hkTozh(audioFile) {
   }
   const formData = new FormData();
   formData.append('file', audioFile);
-  return axios.post('translation_hk_to_zh', formData, {
+  return axios.post('/web/translation_hk_to_zh', formData, {
     headers: {
     }
   });
@@ -19,7 +19,7 @@ export function audio_recognition_hkToen(audioFile) {
   }
   const formData = new FormData();
   formData.append('file', audioFile);
-  return axios.post('translation_hk_to_en', formData, {
+  return axios.post('/web/translation_hk_to_en', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }

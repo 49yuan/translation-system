@@ -135,7 +135,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { storeToRefs } from 'pinia'
-import axios from 'axios'
+import axios from '@/api/axios'
 
 const chatStore = useChatStore()
 const {
@@ -193,7 +193,7 @@ const handleFileUpload = async (event) => {
     })
 
     try {
-        const response = await axios.post(`/speaker_diarization?${queryParams.toString()}`, formData, {
+        const response = await axios.post(`/web/speaker_diarization?${queryParams.toString()}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
         })
 
@@ -258,9 +258,9 @@ const exportFile = async (format) => {
 
     let url = ''
     if (format === 'excel') {
-        url = '/export/diarization/excel'
+        url = '/web/export/diarization/excel'
     } else if (format === 'word') {
-        url = '/export/diarization/word'
+        url = '/web/export/diarization/word'
     } else {
         alert('无效的导出格式')
         return
@@ -317,7 +317,7 @@ const handleExportCommand = (command) => {
 // 说话人相关方法
 const fetchSpeakers = async () => {
     try {
-        const response = await axios.get('/speaker')
+        const response = await axios.get('/web/speaker')
         if (response.data.code === 200) {
             const speakers = response.data.data.result
             const selectedSpeakers = {}
@@ -415,7 +415,7 @@ const createSpeaker = async () => {
     }
 
     try {
-        const response = await axios.post(`/speaker?name=${dialogState.value.newSpeakerName}`, formData, {
+        const response = await axios.post(`/web/speaker?name=${dialogState.value.newSpeakerName}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
 
@@ -446,7 +446,7 @@ const addVoiceToSpeaker = async () => {
 
     try {
         const response = await axios.put(
-            `/speaker/add_voice?speaker_id=${dialogState.value.selectedSpeaker.id}`,
+            `/web/speaker/add_voice?speaker_id=${dialogState.value.selectedSpeaker.id}`,
             formData,
             { headers: { 'Content-Type': 'multipart/form-data' } }
         )

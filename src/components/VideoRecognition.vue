@@ -38,7 +38,7 @@
   </template>
   
   <script>
-  import axios from 'axios';
+  import axios from '@/api/axios';
   import { FFmpeg } from '@ffmpeg/ffmpeg'
   import { fetchFile } from '@ffmpeg/util'
   import { useTranslationStore } from '@/stores/translation'
@@ -98,7 +98,7 @@
                 console.log('[DEBUG] Authorization Token:', token);
 
                 const response = await axios.post(
-                `/speaker_diarization?language=${this.language}&start_time=${start}&end_time=${end}`,
+                `/web/speaker_diarization?language=${this.language}&start_time=${start}&end_time=${end}`,
                 formData,
                 {
                     headers: {
@@ -141,7 +141,7 @@
           const blob = new Blob([wav.data], { type: 'audio/wav' });
           const formData = new FormData();
           formData.append('file', blob, wav.name);
-          const response = await axios.post(`/speaker_diarization?language=${this.language}&start_time=${start}&end_time=${end}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+          const response = await axios.post(`/web/speaker_diarization?language=${this.language}&start_time=${start}&end_time=${end}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
           if (response.data.code === 200) {
             this.subtitles = response.data.data.recognition_result.map(sub => ({ text: sub.text, start_time: sub.start_time, end_time: sub.end_time }));
             this.renderHighlightedText();
