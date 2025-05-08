@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from '@/api/axios';
 export default {
     data() {
         return {
@@ -57,11 +57,11 @@ export default {
             this.$refs.changePasswordFormRef.validate((valid) => {
                 if (valid) {
                     const { old_password, new_password } = this.changePasswordForm;
-                    axios.put(`/update_password?old_password=${old_password}&new_password=${new_password}`)
+                    axios.put(`/web/update_password?old_password=${old_password}&new_password=${new_password}`)
                         .then(response => {
                             if (response.data.code === 200 && response.data.data.result) {
                                 this.$message.success('修改成功');
-                                this.$router.push('/login'); // 跳回登录页面
+                                this.$router.push('/web/login'); // 跳回登录页面
                             } else {
                                 this.$message.error(response.data.data.msg || '修改失败');
                             }

@@ -52,7 +52,7 @@
 
 <script>
 import { audio_recognition_hkTozh } from '@/api/speech_recognition'
-import axios from "axios";
+import axios from '@/api/axios';
 import { useTranslationStore } from '@/stores/translation'
 import { storeToRefs } from 'pinia'
 
@@ -221,7 +221,7 @@ export default {
             formData.append('lang', this.lang || 'zh');
 
             try {
-                const response = await axios.post('/speaker_diarization', formData, {
+                const response = await axios.post('/web/speaker_diarization', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -277,9 +277,9 @@ export default {
 
             let url = '';
             if (format === 'excel') {
-                url = '/export/diarization/excel';
+                url = '/web/export/diarization/excel';
             } else if (format === 'word') {
-                url = '/export/recognition/word';
+                url = '/web/export/recognition/word';
             } else {
                 this.$message.error('无效的导出格式');
                 return;
