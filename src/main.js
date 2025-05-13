@@ -23,6 +23,8 @@ axios.interceptors.request.use(config => {
     config.headers.Authorization = window.sessionStorage.getItem('token');
     return config
 });
+// 添加网络响应过期时间，设置为10分钟过期
+axios.defaults.timeout = 600000
 
 app.use(pinia)
 app.config.globalProperties.$pinia = pinia
