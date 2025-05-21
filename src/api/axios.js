@@ -44,7 +44,7 @@ const handleActivation = (originalRequest, errorMessage) => {
 
 instance.interceptors.response.use(
   response => {
-    if ([401, 402, 403].includes(response.data?.code) && 
+    if ([404, 402, 403].includes(response.data?.code) && 
         !response.config.url.includes('/auth/activate')) {
       return handleActivation(response.config);
     }
@@ -52,7 +52,7 @@ instance.interceptors.response.use(
   },
   error => {
     const status = error.response?.status;
-    if ([401, 402, 403].includes(status)) {
+    if ([404, 402, 403].includes(status)) {
       return handleActivation(error.config);
     }
     return Promise.reject(error);
