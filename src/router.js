@@ -19,8 +19,6 @@ const routes = [
                     cacheKey: 'synthesis'
                 }
             }
-            // { path: '/record', component: RecordPage },
-            // { path: '/translate', component: MiandianPage }
         ]
     }
 ];
