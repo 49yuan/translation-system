@@ -13,6 +13,9 @@
           <div class="operation-area">
             <el-slider v-model="videoTimestamp" :min="0" :max="videoDuration" range show-stops :marks="marks" @change="handleTimestampChange" class="video-slider"></el-slider>
             <div class="right-end">
+              <el-tooltip content="启用后，优先使用缓存识别结果" placement="top">
+                <el-switch v-model="useCache" active-text="使用缓存" style="margin-right: 10px;"/>
+              </el-tooltip>
               <el-select v-model="language" placeholder="语言" style="width: 100px; margin-right: 10px;">
                 <el-option label="中文" value="zh" />
                 <el-option label="英文" value="en" />
@@ -43,6 +46,7 @@
   import { fetchFile } from '@ffmpeg/util'
   import { useTranslationStore } from '@/stores/translation'
   import { storeToRefs } from 'pinia'
+import { use } from 'video.js/dist/types/tech/middleware';
   
   export default {
     name: 'VideoRecognition',
@@ -56,7 +60,8 @@
         isTranslating2: false,
         isTranslating1: false,
         ffmpeg: null,
-        language: 'zh'
+        language: 'zh',
+        useCache: true,
       }
     },
     computed: {
@@ -90,6 +95,7 @@
 
                 const formData = new FormData();
                 formData.append('file', blob, wav.name);
+                formData.append("use_cache", this.useCache);
 
                 console.log('[DEBUG] 提交的音频文件名:', wav.name);
                 console.log('[DEBUG] formData.get("file"):', formData.get('file'));

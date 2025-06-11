@@ -9,10 +9,13 @@
                     <audio ref="audioPlayer" controls></audio>
                     
                     <div class="button-group">
+                        <el-tooltip content="启用后，优先使用缓存识别结果" placement="top">
+                            <el-switch v-model="useCache" active-text="使用缓存" style="margin-right: 10px;"/>
+                        </el-tooltip>
                         <el-select v-model="lang" placeholder="选择语言" style="width: 100px; margin-left: 10px;">
-                        <el-option label="中文" value="zh" />
-                        <el-option label="英文" value="en" />
-                    </el-select>
+                            <el-option label="中文" value="zh" />
+                            <el-option label="英文" value="en" />
+                        </el-select>
                         <el-upload :on-success="handleSuccess" :on-error="handleError" :before-upload="beforeUpload"
                             :file-list="fileList" name="audio" list-type="text" accept="audio/*" :auto-upload="false"
                             :on-change="handleChange" class="button">
@@ -55,6 +58,7 @@ import { audio_recognition_hkTozh } from '@/api/speech_recognition'
 import axios from '@/api/axios';
 import { useTranslationStore } from '@/stores/translation'
 import { storeToRefs } from 'pinia'
+import { useCache } from 'element-plus/es/components/virtual-list/src/hooks/use-cache';
 
 export default {
     name: 'SpeechRecognition',
@@ -74,6 +78,7 @@ export default {
             mediaRecorder: null,
             chunks: [],
             isTranslating: false,
+            useCache: true,
         };
     },
     computed: {
@@ -219,6 +224,7 @@ export default {
             const formData = new FormData();
             formData.append('file', this.audioFile);
             formData.append('lang', this.lang || 'zh');
+            formData.append("use_cache", this.useCache);
 
             try {
                 const response = await axios.post('/web/speaker_diarization', formData, {
