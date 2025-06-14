@@ -46,7 +46,6 @@
   import { fetchFile } from '@ffmpeg/util'
   import { useTranslationStore } from '@/stores/translation'
   import { storeToRefs } from 'pinia'
-import { use } from 'video.js/dist/types/tech/middleware';
   
   export default {
     name: 'VideoRecognition',

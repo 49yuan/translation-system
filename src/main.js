@@ -15,8 +15,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component);
 }
 // 配置请求的根路径
-axios.defaults.baseURL = window.g.base_url;
-console.log(window.g.base_url)
+axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL;
 app.config.globalProperties.$http = axios;
 // 请求拦截器
 axios.interceptors.request.use(config => {

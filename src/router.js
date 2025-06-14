@@ -60,13 +60,29 @@ const routes = [
     }
 ];
 
+const base = process.env.NODE_ENV === 'production' ? '/minnan/' : '/';
+
 const router = createRouter({
-    history: createWebHashHistory(),
+    history: createWebHashHistory(base),
     routes
 });
 
+import { useChatStore } from '@/stores/chat';
+import { useLanguageStore } from '@/stores/language';
+
 router.beforeEach((to, from, next) => {
     const translationStore = useTranslationStore()
+
+    console.log(translationStore.auth)
+
+    // 如果你刷新页面，没有从 sessionStorage 或 localStorage 恢复 token，那么 Pinia 的 auth 状态就会回到初始值 null
+    // 因为 store 是在每次应用加载时重新创建的。所以即使之前成功登录，刷新页面后 auth 的值也会丢失
+    const token = window.sessionStorage.getItem("token");
+    const username = window.sessionStorage.getItem("username");
+    if (token && username) {
+        translationStore.setAuth(token, username);
+    }
+
     if (to.path !== '/login' && !translationStore.auth.token) {
         // 未登录且不是前往登录页，重置所有状态
         translationStore.clearAuth()

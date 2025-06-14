@@ -85,6 +85,7 @@ export default {
                         const router = useRouter()
 
                         // 存储认证信息
+                        console.log(response)
                         store.setAuth(response.data.result, this.loginForm.username)
                         window.sessionStorage.setItem("token", response.data.result)
                         window.sessionStorage.setItem("username", this.loginForm.username)
